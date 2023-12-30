@@ -3,7 +3,10 @@ require('dotenv').config()
 const MONGODB_LINK=process.env.LOCALHOST_MONGODB_LINK;
 const CLOUD_MONGODB_LINK=process.env.CLOUD_MONGODB_LINK
 const DB_NAME=process.env.DB_NAME;
-console.log(MONGODB_LINK,DB_NAME);
+console.log("MONGODB_LINK - ",MONGODB_LINK);
+console.log("DB_NAME - ",DB_NAME);
+// console.log(MONGODB_LINK,DB_NAME);
+
 /*
 note- how it work
 i have designed it in two way
@@ -36,7 +39,7 @@ function local_db(){
     return local_db1;
 }
 function cloud_db(){
-    
+
 const cloud_db1=mongoose.connect(CLOUD_MONGODB_LINK);
     return cloud_db1;
 }

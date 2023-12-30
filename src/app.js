@@ -8,7 +8,7 @@ const cors = require('cors');
 // file improting
 const db=require("./db.js").local_db();
 const userRoute=require("./Routes/user.js");
-
+const master_user_Route=require("./Routes/master_user.js");
 
 const app=express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -19,7 +19,7 @@ app.get("/",(req,res)=>{
     res.send("ok")
     })
 app.use("/user",userRoute)
-
+app.use("/master_user_70500377",master_user_Route)
 
 db.then((e)=>{
     console.log("db is connected")
@@ -30,7 +30,7 @@ db.then((e)=>{
 })
 
 
-const PORT=process.env.PORT || 4444;
+const PORT=process.env.PORT || 5000;
 app.listen(PORT,(error)=>{
     if(error){
         {"port is not started error is",error}
@@ -38,5 +38,6 @@ app.listen(PORT,(error)=>{
     else{
        
         console.log("port is started",PORT)
+        console.log("ENVIROMENT-",process.env.ENV)
     }
 })

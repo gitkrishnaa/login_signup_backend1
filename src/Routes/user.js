@@ -4,9 +4,9 @@ const user_controller=require("../controller/user");
 
 
 
-route.post("/signup",user_controller.signup)
+route.post("/signup",user_controller.signup2)
 route.post("/login",user_controller.login)
-route.get("/devloper",user_controller.devloper)
+route.get("/",user_controller.devloper)
 
 
 
