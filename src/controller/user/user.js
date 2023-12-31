@@ -3,7 +3,7 @@ const userModel = require("../../model/user");
 const jwt_utility = require("../../utility/jwt");
 const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
-const utility=require("../../utility/utility")
+const print = require("../../utility/utility").print;
 // user class
 class User {
   constructor(name, email, password, verified) {
@@ -46,10 +46,9 @@ module.exports.signup = async (req, res) => {
       return;
     }
 
-
-    // encrypting password 
-    console.log()
-    const encrypt_passowrd=await checks.encrypt_passowrd(password)
+    // encrypting password
+    console.log();
+    const encrypt_passowrd = await checks.encrypt_passowrd(password);
     const model_obj = {
       name: name,
       password: encrypt_passowrd,
@@ -65,63 +64,30 @@ module.exports.signup = async (req, res) => {
     };
 
     //  saving in db
-    // const result = await userModel.create(model_obj);
-    
-    // console.log(result);
-    // console.log(model_obj)
-    utility.print(req,{model_obj}
-    )
-    res.status(401).json({ masg:"result" });
+
+    const is_exist = await userModel.findOne({email:email});
+    if(is_exist!=null){
+      res.status(400).json({msg:"user already exist"});
+     return 
+    }
+
+    const result = await userModel.create(model_obj);
+    console.log(result)
+    print(req, { model_obj, result });
+    res.status(201).json({msg:"user sign up sucessful"});
   } catch (error) {
     console.log(error);
     res.status(500).send("internal error");
   }
   console.log(["signup controller end --># "]);
 };
-module.exports.signup2 = async (req, res) => {
-  console.log(["#<--signip controller start"]);
-  try {
-    const email = req.body.email;
-    const password = req.body.password;
-    const name = req.body.name;
-    console.log(email, password, name);
 
-    // password encrypt
-    const encrypted_psd = await check.encrypt_passowrd(password);
-    // console.log(encrypted_psd)
-
-    const user = new User(name, email, encrypted_psd, false);
-    console.log(user);
-    const resp = await userModel.create({});
-
-    console.log("resp", resp);
-    res.status(200).json({
-      status: 200,
-      msg: "user signup sucessful,please login now",
-      data: { email: email },
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("internal error");
-  }
-  console.log(["signup controller end --># "]);
-};
 module.exports.login = async (req, res) => {
   try {
-    const name = req.body.name;
     const password = req.body.password;
     const email = req.body.email;
-    const user_referral_id = req.body.user_referral_id;
-    const mobile = req.body.mobile;
-    const verified = req.body.verified;
-    const active = req.body.active;
-    const city = req.body.city;
-    const state = req.body.state;
-    const zipcode = req.body.zipcode;
-    const amount = req.body.amount;
-    const reffer_by = req.body.reffer_by;
-
-    console.log(email, password);
+  
+print(req, { password, email });
     // checkuing emapty
     if (email == undefined || password == undefined) {
       res.status(400).send("empty data");
@@ -129,36 +95,37 @@ module.exports.login = async (req, res) => {
     }
 
     // checking email valid or not
-    const email_valid = check.email_validate(email);
-    if (email_valid.status == false) {
-      res.status(400).send("not valid email");
-      return;
+    // const email_valid = check.email_validate(email);
+    // if (email_valid.status == false) {
+    //   res.status(400).send("not valid email");
+    //   return;
+    // }
+
+
+    const resp = await userModel.findOne({ email: email })
+
+    if(resp!=null){
+      print(req,{resp})
+      const decrypted_password=await checks.decrypt_passowrd_compare(resp.password,password)
+      print(req,{decrypted_password})
+      if (decrypted_password) {
+        const jwt_token = await auth.jwt_token_generate(email, resp?._id);
+        res.status(200).json({ token: jwt_token });
+      } else {
+        res.status(401).json({ msg: "passowrd not match" });
+      }
+    }
+    else{
+      res.status(400).json({ msg: "Account not exist" });
     }
 
-    const resp = await checks.query(
-      userModel.findOne({ email: user_email }),
-      "not found"
-    );
 
-    const model_obj = {
-      name: name,
-      password: password,
-      email: email,
-      user_referral_id: user_referral_id,
-      mobile: mobile,
-      verified: verified,
-      active: active,
-      city: city,
-      state: state,
-      zipcode: zipcode,
-      amount: amount,
-      reffer_by: reffer_by,
-    };
 
-    res.status(401).json({ msg: "passowrd not match" });
+
+    console.log(["login controller end --># "]);
   } catch (error) {
     console.log(error);
     res.status(500).send("internal error");
   }
-  console.log(["login controller end --># "]);
+ 
 };

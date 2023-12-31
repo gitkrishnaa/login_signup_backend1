@@ -24,7 +24,6 @@ module.exports.encrypt_passowrd = async (passowrd) => {
 };
 
 module.exports.decrypt_passowrd_compare=async(encrypted_psd,entered_psd)=>{
-    console.log(encrypted_psd,entered_psd)
  const result=await bcrypt.compare(entered_psd,encrypted_psd);
 return result;
 // it retyurn promise boolean true/false
