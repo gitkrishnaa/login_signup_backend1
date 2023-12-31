@@ -19,7 +19,7 @@ app.get("/",(req,res)=>{
     res.send("ok")
     })
 app.use("/user",userRoute)
-app.use("/master_user_70500377",master_user_Route)
+app.use("/master_user",master_user_Route)
 
 db.then((e)=>{
     console.log("db is connected")

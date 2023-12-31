@@ -1,5 +1,5 @@
 const route=require('express').Router();
-const user_controller=require("../controller/user");
+const user_controller=require("../controller/user/user");
 
 
 
