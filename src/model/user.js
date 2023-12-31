@@ -7,17 +7,20 @@ const userSchema = mongoose.Schema({
   name: { type: String, required: true },
   password: { type: String, required: true },
   email: {type: String,unique: true,required: true},
-  user_referral_id: {type: String,unique: true,required: true},
-  mobile: {type: Number,required: true},
+  user_referral_code: {type: String,unique: true,required: true},
+  mobile: {type: String,required: true},
   verified: { type: Boolean, required: true},
   active: { type: Boolean, required: true },
   city: { type: String, required: true },
   state: { type: String, required: true },
   zipcode: { type: Number, required: true },
   amount: { type: Number, required: true },
-  reffer_by:{
+  referral_by_id:{
     type:mongoose.Types.ObjectId,
-    ref:"user"
+    ref:"user",
+  },
+  referral_by_code:{
+    type:String,
   }
 
 });

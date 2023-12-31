@@ -28,3 +28,15 @@ module.exports.decrypt_passowrd_compare=async(encrypted_psd,entered_psd)=>{
 return result;
 // it retyurn promise boolean true/false
 }  
+
+module.exports.is_empty=(obj)=>{
+    console.log(obj)
+    for (const item in obj) {
+        // console.log("item", item)
+       if(obj[item]==undefined ||obj[item]==""){
+        console.log(["messge(from .is_empty)",`obj.${item} is undefined`])
+        // throw new Error({msg:"is undefined"})
+       }
+    }
+  
+}

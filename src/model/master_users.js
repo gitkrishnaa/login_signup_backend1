@@ -5,7 +5,7 @@ const schema = mongoose.Schema({
     email:{required:true,unique:true,type:String},
     password:{required:true,type:String},
     isMaster:{required:true,type:Boolean},
-    whoIs:{required:true,type:String,}
+    whoIs:{required:true,type:String},
 
 })
 

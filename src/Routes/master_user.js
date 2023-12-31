@@ -1,7 +1,6 @@
 const route = require("express").Router();
-const user_controller = require("../controller/user/user.js");
 const auth = require("../auth/auth");
-
+const plans=require("../controller/master_user/plans.js")
 const account=require("../controller/master_user/account.js")
 
 
@@ -42,5 +41,6 @@ route.post("/login",sequrity_middlewere,account.login);
 route.get("/all_users",jwt_verify, (req, res) => {
   res.json("everything is ok");
 });
-
+route.post("/add_plan",plans.add_plan);
+route.post("/discount_on_plan",plans.discount_on_plan);
 module.exports = route;

@@ -4,6 +4,7 @@ const jwt_utility = require("../../utility/jwt");
 const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
 const print = require("../../utility/utility").print;
+const referral_code_generator=require("../../utility/utility").referral_code_generator
 // user class
 class User {
   constructor(name, email, password, verified) {
@@ -14,6 +15,7 @@ class User {
   }
 }
 module.exports.devloper = async (req, res) => {
+  // console.log(referral_code_generator())
   res.send("ok");
 };
 module.exports.signup = async (req, res) => {
@@ -22,7 +24,7 @@ module.exports.signup = async (req, res) => {
     const name = req.body.name;
     const password = req.body.password;
     const email = req.body.email;
-    const user_referral_id = req.body.user_referral_id;
+    const user_referral_code = req.body.user_referral_code;
     const mobile = req.body.mobile;
     const verified = req.body.verified;
     const active = req.body.active;
@@ -30,7 +32,7 @@ module.exports.signup = async (req, res) => {
     const state = req.body.state;
     const zipcode = req.body.zipcode;
     const amount = req.body.amount;
-    const reffer_by = req.body.reffer_by;
+    const referral_by_id = req.body.reffer_by;
 
     console.log(email, password);
     // checkuing emapty
@@ -53,7 +55,7 @@ module.exports.signup = async (req, res) => {
       name: name,
       password: encrypt_passowrd,
       email: email,
-      user_referral_id: user_referral_id,
+      user_referral_code:referral_code_generator()[0],
       mobile: mobile,
       verified: verified,
       active: active,

@@ -56,9 +56,11 @@ module.exports.login = async (req, res) => {
     } else {
       res.status(401).json({ msg: "passowrd not match" });
     }
+    console.log("login master user login @");
   } catch (error) {
     console.log(error);
     res.json(error);
+    console.log("login master user login @");
   }
-  console.log("login master user login @");
+
 };

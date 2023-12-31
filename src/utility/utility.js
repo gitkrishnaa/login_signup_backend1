@@ -1,3 +1,7 @@
+const random=require('get-random-data')
+
+
+
 module.exports.print2=(req,print_data_arr,is_print)=>{
     // how to use
     // requrw- 1st param will be req object, 2nd, all that to be printed, third param will tell print, even it not passed in headers
@@ -64,4 +68,12 @@ module.exports.print=(req,print_data_arr,is_print)=>{
 }
     
    
+}
+module.exports.referral_code_generator=(code_length)=>{
+   const code=random.random_string(6)
+   
+   
+  return code
+
+
 }
