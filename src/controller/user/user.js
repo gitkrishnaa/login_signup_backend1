@@ -1,8 +1,9 @@
 const check = require("../../utility/user");
 const userModel = require("../../model/user");
 const jwt_utility = require("../../utility/jwt");
-const auth=require("../../auth/auth")
+const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
+const utility=require("../../utility/utility")
 // user class
 class User {
   constructor(name, email, password, verified) {
@@ -16,15 +17,24 @@ module.exports.devloper = async (req, res) => {
   res.send("ok");
 };
 module.exports.signup = async (req, res) => {
-  console.log(["#<--signip controller start"]);
+  console.log(["#<--signup controller start"]);
   try {
-    const email = req.body.email;
-    const password = req.body.password;
     const name = req.body.name;
+    const password = req.body.password;
+    const email = req.body.email;
+    const user_referral_id = req.body.user_referral_id;
+    const mobile = req.body.mobile;
+    const verified = req.body.verified;
+    const active = req.body.active;
+    const city = req.body.city;
+    const state = req.body.state;
+    const zipcode = req.body.zipcode;
+    const amount = req.body.amount;
+    const reffer_by = req.body.reffer_by;
 
-    console.log(email, password, name);
+    console.log(email, password);
     // checkuing emapty
-    if (email == undefined || password == undefined || name == undefined) {
+    if (email == undefined || password == undefined) {
       res.status(400).send("empty data");
       return;
     }
@@ -35,8 +45,33 @@ module.exports.signup = async (req, res) => {
       res.status(400).send("not valid email");
       return;
     }
-    console.log(req.body)
-   
+
+
+    // encrypting password 
+    console.log()
+    const encrypt_passowrd=await checks.encrypt_passowrd(password)
+    const model_obj = {
+      name: name,
+      password: encrypt_passowrd,
+      email: email,
+      user_referral_id: user_referral_id,
+      mobile: mobile,
+      verified: verified,
+      active: active,
+      city: city,
+      state: state,
+      zipcode: zipcode,
+      amount: amount,
+    };
+
+    //  saving in db
+    // const result = await userModel.create(model_obj);
+    
+    // console.log(result);
+    // console.log(model_obj)
+    utility.print(req,{model_obj}
+    )
+    res.status(401).json({ masg:"result" });
   } catch (error) {
     console.log(error);
     res.status(500).send("internal error");
@@ -73,8 +108,18 @@ module.exports.signup2 = async (req, res) => {
 };
 module.exports.login = async (req, res) => {
   try {
-    const email = req.body.email;
+    const name = req.body.name;
     const password = req.body.password;
+    const email = req.body.email;
+    const user_referral_id = req.body.user_referral_id;
+    const mobile = req.body.mobile;
+    const verified = req.body.verified;
+    const active = req.body.active;
+    const city = req.body.city;
+    const state = req.body.state;
+    const zipcode = req.body.zipcode;
+    const amount = req.body.amount;
+    const reffer_by = req.body.reffer_by;
 
     console.log(email, password);
     // checkuing emapty
@@ -95,13 +140,22 @@ module.exports.login = async (req, res) => {
       "not found"
     );
 
-    if (resp.password == password) {
-      const jwt_token = await auth.jwt_token_generate("email", "id");
-      res.status(200).json({ token: jwt_token });
-      return
-    } else {
-      res.status(401).json({ msg: "passowrd not match" });
-    }
+    const model_obj = {
+      name: name,
+      password: password,
+      email: email,
+      user_referral_id: user_referral_id,
+      mobile: mobile,
+      verified: verified,
+      active: active,
+      city: city,
+      state: state,
+      zipcode: zipcode,
+      amount: amount,
+      reffer_by: reffer_by,
+    };
+
+    res.status(401).json({ msg: "passowrd not match" });
   } catch (error) {
     console.log(error);
     res.status(500).send("internal error");

@@ -13,6 +13,7 @@ module.exports.query = async (moongoose_query, res) => {
 };
 module.exports.encrypt_passowrd = async (passowrd) => {
   try {
+
     const saltRound = 10;
     const get_salt = await bcrypt.genSalt(saltRound);
     const encrypted_psd = await bcrypt.hash(passowrd, get_salt);
