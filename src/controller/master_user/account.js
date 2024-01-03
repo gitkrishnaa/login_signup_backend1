@@ -1,6 +1,6 @@
 const checks = require("../../utility/checks");
 const auth = require("../../auth/auth");
-const master_user_model = require("../../model/master_users");
+const master_user_model = require("../../model/master_user/master_users");
 // user class
 class User {
   constructor(name, email, password, verified) {
@@ -10,7 +10,11 @@ class User {
     this.verified = verified;
   }
 }
-module.exports.devloper = async (req, res) => {};
+module.exports.devloper = async (req, res) => {
+    
+
+
+};
 
 module.exports.master_user_create = async (req, res) => {
   try {
@@ -40,11 +44,11 @@ module.exports.login = async (req, res) => {
     const user_email = req.body.email;
     const password = req.body.password;
 
-    const is_exist = await master_user_model.findOne({ email: email });
-    if (is_exist != null) {
-      res.status(400).json({ msg: "user already exist" });
-      return;
-    }
+    // const is_exist = await master_user_model.findOne({ email: user_email });
+    // if (is_exist != null) {
+    //   res.status(400).json({ msg: "user already exist" });
+    //   return;
+    // }
 
     const resp = await checks.query(
       master_user_model.findOne({ email: user_email }),
@@ -52,14 +56,14 @@ module.exports.login = async (req, res) => {
     );
     if (resp.password == password) {
       const jwt_token = await auth.jwt_token_generate("email", "id");
-      res.status(200).json({ token: jwt_token });
+      res.status(200).json({ token: jwt_token,msg:"login sucessful" });
     } else {
       res.status(401).json({ msg: "passowrd not match" });
     }
     console.log("login master user login @");
   } catch (error) {
     console.log(error);
-    res.json(error);
+    res.status(400).json({error,});
     console.log("login master user login @");
   }
 

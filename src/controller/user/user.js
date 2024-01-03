@@ -1,5 +1,5 @@
 const check = require("../../utility/user");
-const userModel = require("../../model/user");
+const userModel = require("../../model/user/user");
 const jwt_utility = require("../../utility/jwt");
 const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
@@ -21,18 +21,15 @@ module.exports.devloper = async (req, res) => {
 module.exports.signup = async (req, res) => {
   console.log(["#<--signup controller start"]);
   try {
+    console.log(req.body)
     const name = req.body.name;
     const password = req.body.password;
     const email = req.body.email;
-    const user_referral_code = req.body.user_referral_code;
     const mobile = req.body.mobile;
-    const verified = req.body.verified;
-    const active = req.body.active;
     const city = req.body.city;
     const state = req.body.state;
     const zipcode = req.body.zipcode;
-    const amount = req.body.amount;
-    const referral_by_id = req.body.reffer_by;
+    const referral_by_code = req.body.referral_by_ || "none";
 
     console.log(email, password);
     // checkuing emapty
@@ -57,13 +54,17 @@ module.exports.signup = async (req, res) => {
       email: email,
       user_referral_code:referral_code_generator()[0],
       mobile: mobile,
-      verified: verified,
-      active: active,
+      verified: false,
+      active: true,
       city: city,
       state: state,
       zipcode: zipcode,
-      amount: amount,
+      amount: 0,
+      kyc_status:false,
+      referral_by_code:referral_by_code,
     };
+
+
 
     //  saving in db
 
