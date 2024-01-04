@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { model_names_obj } = require("../Model_obj");
+
 //schema
 
 const userSchema = mongoose.Schema({
@@ -16,13 +16,13 @@ const userSchema = mongoose.Schema({
   zipcode: { type: Number, required: true },
   amount: { type: Number, required: true },
   kyc_status:{type:Boolean},
-  kyc_details:{  type:mongoose.Types.ObjectId, ref:"kyc"},
-  referral_by_id:{type:mongoose.Types.ObjectId,ref:"user",},
+  kyc_details:{  type:mongoose.Types.ObjectId, ref:model_names_obj.kyc},
+  referral_by_id:{type:mongoose.Types.ObjectId,ref:model_names_obj.user,},
   referral_by_code:{type:String,required:true}
 
 });
 
-const userModel = mongoose.model("user", userSchema);
+const userModel = mongoose.model(model_names_obj.user, userSchema);
 
 module.exports = userModel;
 

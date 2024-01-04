@@ -74,7 +74,6 @@ commision_sales_value=%
         razorpay_charges_amount,
         commission_sales_value_csv,
         commission_amount,
-
     }
 
   return obj;
@@ -83,4 +82,4 @@ commision_sales_value=%
 }
 
 
-module.exports.claculate=Claculate
+module.exports.claculate=claculate_func;

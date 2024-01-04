@@ -30,13 +30,15 @@ return result;
 }  
 
 module.exports.is_empty=(obj)=>{
-    console.log(obj)
+    // console.log(obj)
     for (const item in obj) {
         // console.log("item", item)
        if(obj[item]==undefined ||obj[item]==""){
-        console.log(["messge(from .is_empty)",`obj.${item} is undefined`])
-        // throw new Error({msg:"is undefined"})
+       console.log(["messge(from .is_empty)",`obj.${item} is undefined`])
+       console.log("object is-",obj)
+    
+       throw new Error({msg:"object is empty or some key is empty"})
        }
-    }
-  
+    } 
 }
+
