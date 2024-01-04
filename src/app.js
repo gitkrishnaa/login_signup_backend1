@@ -10,7 +10,7 @@ const db=require("./db.js").local_db();
 const userRoute=require("./Routes/user.js");
 const master_user_Route=require("./Routes/master_user.js");
 const general=require("./Routes/general.js");
-
+const test=require("./Routes/test.js");
 const app=express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json())
@@ -22,7 +22,7 @@ app.get("/",(req,res)=>{
 app.use("/user",userRoute)
 app.use("/master_user",master_user_Route)
 app.use("/general",general)
-app.use("/test",general)
+app.use("/test",test)
 db.then((e)=>{
     console.log("db is connected")
 })

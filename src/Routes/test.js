@@ -1,8 +1,8 @@
-const { test } = require('../controller/Test/test');
+const test = require('../controller/Test/test');
 
 const route=require('express').Router();
 
-route.get("/",test)
+route.get("/",test.test)
 
 
 

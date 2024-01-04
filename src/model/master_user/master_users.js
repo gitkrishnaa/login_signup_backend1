@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { model_names_obj } = require("../Model_obj");
+
 
 const schema = mongoose.Schema({
     name:{required:true,type:String},
@@ -9,5 +11,5 @@ const schema = mongoose.Schema({
 
 })
 
-const model=mongoose.model("master",schema);
+const model=mongoose.model(model_names_obj.master_user,schema);
 module.exports=model;
