@@ -43,8 +43,6 @@ module.exports.discount_on_plan=async (req,res)=>{
     // const insert_result=await plan_model.updateAll()
     // insert_result.map()
 
-
-
     console.log(insert_result)
     
     res.status(200).json({msg:"discount applied"}) 

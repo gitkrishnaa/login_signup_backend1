@@ -22,6 +22,7 @@ app.get("/",(req,res)=>{
 app.use("/user",userRoute)
 app.use("/master_user",master_user_Route)
 app.use("/general",general)
+app.use("/test",general)
 db.then((e)=>{
     console.log("db is connected")
 })
