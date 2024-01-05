@@ -20,15 +20,15 @@ module.exports.jwt_token_verify=async (req,res,next)=>{
 try {
     console.log("@jwt_verify")
     const token=req.headers['authorization']
- 
-// 
+ console.log(token)
+//  
     if(token==undefined){
         res.status(400).send("token not recieved")
     }
     else{
         const jwt_verify= JWT.verify(token,jwt_key); 
         // console.log(jwt_verify)
-         req.body.user_data=jwt_verify
+         req.user=jwt_verify
          next()
     }
 } catch (error) {

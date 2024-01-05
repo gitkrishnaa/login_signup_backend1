@@ -42,3 +42,14 @@ module.exports.is_empty=(obj)=>{
     } 
 }
 
+module.exports.is_empty_variable=(...arr)=>{
+
+if(typeof(arr)=="object" && arr.length>=0 ){
+  arr.map((e,n)=>{
+    if(e==undefined || e==null || e==""){
+      throw new Error(`error_message-${n}th is empty`)
+    }
+  })
+}
+
+}

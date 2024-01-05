@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { model_names_obj } = require("../Model_obj");
 
 
 const schema=mongoose.Schema({
@@ -8,8 +9,9 @@ active:{required:true,type:String},
 commision_percentage:{required:true,type:String},
 referral_code:{required:true,type:String,unique:true},
 discount_percentage:{type:Number},
-gst:{type:Number}
+gst:{type:Number},
+plan_contents:{type:mongoose.Types.ObjectId,ref:model_names_obj.plan_contents,},
 })
-const model = mongoose.model("plans", schema);
+const model = mongoose.model(model_names_obj.plans, schema);
 
 module.exports = model;

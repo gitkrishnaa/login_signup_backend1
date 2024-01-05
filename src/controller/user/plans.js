@@ -1,5 +1,5 @@
 const checks = require("../../utility/checks");
-const plan_model = require("../../model/user/plans");
+const plan_model = require("../../model/master_user/plans");
 
 module.exports.get_all_plans=async (req,res)=>{
 
