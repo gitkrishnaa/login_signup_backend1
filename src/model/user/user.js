@@ -17,8 +17,8 @@ const userSchema = mongoose.Schema({
   amount: { type: Number, required: true },
   kyc_status:{type:Boolean},
   kyc_details:{  type:mongoose.Types.ObjectId, ref:model_names_obj.kyc},
-  referral_by_id:{type:mongoose.Types.ObjectId,ref:model_names_obj.user,},
-  referral_by_code:{type:String,required:true}
+  referral_by_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user,},
+  // referral_by_code:{type:String,required:true}
 
 });
 

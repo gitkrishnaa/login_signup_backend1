@@ -6,6 +6,7 @@ const { is_empty, is_empty_variable } = require("../../utility/checks");
 const userModel = require("../../model/user/user");
 const plan_model = require("../../model/master_user/plans");
 const transaction_model = require("../../model/payments/transactions");
+const mongoose = require("mongoose");
 
 
 
@@ -29,8 +30,10 @@ module.exports.order = async (req, res) => {
 // getting plan  details
    const plan_details=await plan_model.findById(seleted_plan_id)
    plan_price=plan_details.price
-// generateing order id
-
+//get user details 
+const user_resp=await userModel.findById(user_id)
+console.log(user_resp)
+//create tranction documnet in db
    const transaction_resp=await transaction_model.create({
     user_id:user_id,
     plan_id:seleted_plan_id,
@@ -58,7 +61,7 @@ module.exports.order = async (req, res) => {
     console.log(plan_details)
     console.log(transaction_resp)
     console.log(options)
-    res.status(200).json({ order_id: resp.id,options:options });
+    res.status(200).json({ order_id: resp.id,options:options,prefill:{name:user_resp.name,email:user_resp.email,contact:user_resp.mobile} });
     // res.status(200).json({msg:"ok" });
   } catch (error) {
     console.log(error);
@@ -74,7 +77,7 @@ module.exports.validation = async (req, res) => {
     const razorpay_order_id = req.body.payload.razorpay_order_id;
     const razorpay_payment_id = req.body.payload.razorpay_payment_id;
     const razorpay_signature = req.body.payload.razorpay_signature;
-
+    const transaction_id=req.body.transaction_id
     // const razorpay_payment_id=req.body.razorpay_payment_id
     var generatedSignature = crypto
       .createHmac("sha256", razorpay_key_secret)
@@ -83,6 +86,14 @@ module.exports.validation = async (req, res) => {
 
     var isSignatureValid = generatedSignature == razorpay_signature;//boolean true/false
     if(isSignatureValid){
+        console.log(transaction_id)
+        const transaction_resp=await transaction_model.findByIdAndUpdate({_id:transaction_id},{status_msg:"sucessful",status:true});
+        // const plan_resp=await plan_model.find({_id:transaction_resp.plan_id})
+        
+        console.log(transaction_resp,"transaction_resp");
+        const transaction_resp2=await transaction_model.find({_id:transaction_id}).populate('plan_id user_id')
+        console.log(transaction_resp2)
+        
         res.status(200).json({ msg: "successfully purchased" });
         
 
