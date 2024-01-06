@@ -15,6 +15,9 @@ const schema=mongoose.Schema({
     payment_platform_charges_percentage:{required:true,type:Number},
     commission_sales_value_csv:{required:true,type:Number},
     reffral_commission_percentage:{required:true,type:Number},
+    is_discount:{required:true,type:Boolean},
+    is_discount:{type:Boolean,required:true},
+    discount_percentage:{type:Number},
     all_calculations:{type:Object}
 })
 const model = mongoose.model(model_names_obj.purchase_details,schema );

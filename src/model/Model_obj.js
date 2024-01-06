@@ -15,6 +15,7 @@ module.exports.model_names_obj={
     payment_details:"payment_details",
     transactions:"transactions",
     purchase_details:"purchase_details",
+    discount:"discount",
 
 
 
