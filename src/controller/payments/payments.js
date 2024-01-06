@@ -1,12 +1,13 @@
 require("dotenv").config();
 const { model_names_obj } = require("../../model/Model_obj");
 const Razorpay = require("razorpay");
+const mongoose = require("mongoose");
 const crypto = require("crypto");
 const { is_empty, is_empty_variable } = require("../../utility/checks");
 const userModel = require("../../model/user/user");
 const plan_model = require("../../model/master_user/plans");
 const transaction_model = require("../../model/payments/transactions");
-const mongoose = require("mongoose");
+const {payment_calculations}=require("../../data/data")
 
 
 
@@ -35,8 +36,8 @@ const user_resp=await userModel.findById(user_id)
 console.log(user_resp)
 //create tranction documnet in db
    const transaction_resp=await transaction_model.create({
-    user_id:user_id,
-    plan_id:seleted_plan_id,
+    user:user_id,
+    plan:seleted_plan_id,
     status:false,
     status_msg:"pending",
    })
@@ -87,13 +88,26 @@ module.exports.validation = async (req, res) => {
     var isSignatureValid = generatedSignature == razorpay_signature;//boolean true/false
     if(isSignatureValid){
         console.log(transaction_id)
-        const transaction_resp=await transaction_model.findByIdAndUpdate({_id:transaction_id},{status_msg:"sucessful",status:true});
-        // const plan_resp=await plan_model.find({_id:transaction_resp.plan_id})
+        const transaction__update_resp=await transaction_model.findByIdAndUpdate({_id:transaction_id},{status_msg:"sucessful",status:true});
+      
         
-        console.log(transaction_resp,"transaction_resp");
-        const transaction_resp2=await transaction_model.find({_id:transaction_id}).populate('plan_id user_id')
-        console.log(transaction_resp2)
-        
+        const transaction_resp=await transaction_model.findOne({_id:transaction_id}).populate('plan user')
+
+        const plan_details=transaction_resp.plan;
+        console.log(transaction_resp)
+
+        const plans_price=plan_details.price;
+        const gst_percentage=plan_details.gst;
+        const user_commision=plan_details.commision_percentage
+        const TDS_percentage=5;
+
+        console.log()
+        const data=payment_calculations(plans_price,gst_percentage,user_commision,TDS_percentage)
+       console.log(data)
+      
+
+
+
         res.status(200).json({ msg: "successfully purchased" });
         
 

@@ -4,24 +4,12 @@ razorpay_charges_percentage:2,
 TDS_percentage:5
 }
 
-class Claculate{
-    #razorpay_charges_percentage=2;
-    #TDS_percentage=5;
-    constructor(amount_without_gst,gst_percentage){
-      this.amount_without_gst=amount_without_gst;
-      this.gst_percentage=gst_percentage
-    }
-//   after inproduction, never edit it, if need, create new one
-   final_data(){
-    
-   }
 
-}
 
-const claculate_func=(amount_without_gst,gst_percentage,commission_percentage)=>{
+const claculate_func=(amount,gst_percentage_p,commission_percentage_p,TDS_percentage_p)=>{
     const razorpay_charges_percentage=2;
-    const TDS_percentage=5;
-   
+    
+    
 
 // logic for calculations
 // amount mean the amount without gst
@@ -58,22 +46,31 @@ so reffral_commision_amount=49
 commision_sales_value=%
 
 
-*/
+*/ function percentage(value,percent){
+return Math.round((value*percent)/100)
+}
      
-    const amount_without_gst=Number(amount_without_gst)
-    const gst_percentage=Number(gst_percentage)
-    const commision_percentage=Number(commision_percentage)
-    const razorpay_charges_amount=amount_without_gst%razorpay_charges_percentage;
+    const amount_without_gst=Number(amount)
+    const gst_percentage=Number(gst_percentage_p)
+    const commision_percentage=Number(commission_percentage_p)
+    const razorpay_charges_amount=percentage(amount_without_gst,razorpay_charges_percentage)
     const commission_sales_value_csv=amount_without_gst-razorpay_charges_amount;
-    const commission_amount=commission_sales_value_csv%commission_percentage
-
+    const commission_amount=percentage(commission_sales_value_csv,commission_percentage_p)
+    const TDS_amount=percentage(commission_amount,TDS_percentage_p)
+    const commision_amount_after_TDS=commission_amount-TDS_amount
     const obj={
+        total_amount:amount_without_gst*(100+gst_percentage)/100,
         amount_without_gst,
         gst_percentage,
         commision_percentage,
         razorpay_charges_amount,
+        razorpay_charges_percentage,
         commission_sales_value_csv,
         commission_amount,
+        TDS_percentage:TDS_percentage_p,
+        TDS_amount,
+        commision_amount_after_TDS
+    
     }
 
   return obj;
@@ -82,4 +79,4 @@ commision_sales_value=%
 }
 
 
-module.exports.claculate=claculate_func;
+module.exports.payment_calculations=claculate_func;
