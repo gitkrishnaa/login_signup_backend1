@@ -15,9 +15,13 @@ const userSchema = mongoose.Schema({
   state: { type: String, required: true },
   zipcode: { type: Number, required: true },
   amount: { type: Number, required: true },
-  kyc_status:{type:Boolean},
+  // kyc releted
+  kyc_status:{type:Boolean,required:true},
+  kyc_status_msg:{type:String,required:true},
   kyc_details:{  type:mongoose.Types.ObjectId, ref:model_names_obj.kyc},
+  //reffral releted
   referral_by_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user,},
+  is_referral_exist:{type:Boolean,required:true}
   // referral_by_code:{type:String,required:true}
 
 });

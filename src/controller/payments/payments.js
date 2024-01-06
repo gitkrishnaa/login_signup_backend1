@@ -4,9 +4,10 @@ const Razorpay = require("razorpay");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const { is_empty, is_empty_variable } = require("../../utility/checks");
-const userModel = require("../../model/user/user");
-const plan_model = require("../../model/master_user/plans");
-const transaction_model = require("../../model/payments/transactions");
+const UserModel = require("../../model/user/user");
+const Plan_model = require("../../model/master_user/plans");
+const Transaction_model = require("../../model/payments/transactions");
+const Purchase_details_model = require("../../model/payments/purchase_details");
 const {payment_calculations}=require("../../data/data")
 
 
@@ -29,13 +30,13 @@ module.exports.order = async (req, res) => {
   
 
 // getting plan  details
-   const plan_details=await plan_model.findById(seleted_plan_id)
+   const plan_details=await Plan_model.findById(seleted_plan_id)
    plan_price=plan_details.price
 //get user details 
-const user_resp=await userModel.findById(user_id)
+const user_resp=await UserModel.findById(user_id)
 console.log(user_resp)
 //create tranction documnet in db
-   const transaction_resp=await transaction_model.create({
+   const transaction_resp=await Transaction_model.create({
     user:user_id,
     plan:seleted_plan_id,
     status:false,
@@ -88,10 +89,10 @@ module.exports.validation = async (req, res) => {
     var isSignatureValid = generatedSignature == razorpay_signature;//boolean true/false
     if(isSignatureValid){
         console.log(transaction_id)
-        const transaction__update_resp=await transaction_model.findByIdAndUpdate({_id:transaction_id},{status_msg:"sucessful",status:true});
+        const transaction__update_resp=await Transaction_model.findByIdAndUpdate({_id:transaction_id},{status_msg:"sucessful",status:true});
       
         
-        const transaction_resp=await transaction_model.findOne({_id:transaction_id}).populate('plan user')
+        const transaction_resp=await Transaction_model.findOne({_id:transaction_id}).populate('plan user')
 
         const plan_details=transaction_resp.plan;
         console.log(transaction_resp)
@@ -102,9 +103,24 @@ module.exports.validation = async (req, res) => {
         const TDS_percentage=5;
 
         console.log()
-        const data=payment_calculations(plans_price,gst_percentage,user_commision,TDS_percentage)
-       console.log(data)
-      
+        const payment_calculations_data=payment_calculations(plans_price,gst_percentage,user_commision,TDS_percentage)
+        
+        const Purchase_details_model_resp=await Purchase_details_model.create({
+          amount_without_gst:payment_calculations_data.amount_without_gst,
+          gst_percentage:payment_calculations_data.gst_percentage,
+          TDS_percentage:payment_calculations_data.TDS_percentage,
+          payment_platform_charges_percentage:payment_calculations_data.razorpay_charges_percentage,
+          payment_platform_amount:payment_calculations_data.razorpay_charges_amount,
+          commission_sales_value_csv:payment_calculations_data.commission_sales_value_csv,
+          reffral_commission_percentage:payment_calculations_data.commision_percentage,
+          reffral_commission_amount:payment_calculations_data.commission_amount,
+          all_calculations:payment_calculations_data,
+        })
+
+
+     
+       console.log(payment_calculations_data)
+        console.log(Purchase_details_model_resp)
 
 
 
