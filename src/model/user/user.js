@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
   city: { type: String, required: true },
   state: { type: String, required: true },
   zipcode: { type: Number, required: true },
-  amount: { type: Number, required: true },
+  commission_balance: { type: Number, required: true },
   // kyc releted
   kyc_status:{type:Boolean,required:true},
   kyc_status_msg:{type:String,required:true},

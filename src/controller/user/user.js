@@ -70,7 +70,7 @@ module.exports.signup = async (req, res) => {
       state: state,
       zipcode: zipcode,
       kyc_status_msg:"pending",
-      amount: 0,
+      commission_balance: 0,
       kyc_status:false,
       is_referral_exist:is_referral_exist,
 

@@ -18,6 +18,6 @@ const schema=mongoose.Schema({
     is_discount:{required:true,type:Boolean},
     discount_percentage:{type:Number},
     all_calculations:{type:Object}
-})
+},{ timestamps: true })
 const model = mongoose.model(model_names_obj.purchase_details,schema );
 module.exports = model;
