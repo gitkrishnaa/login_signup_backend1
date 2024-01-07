@@ -1,5 +1,5 @@
 const check = require("../../utility/user");
-const userModel = require("../../model/user/user");
+const UserModel = require("../../model/user/user");
 const jwt_utility = require("../../utility/jwt");
 const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
@@ -29,7 +29,9 @@ module.exports.signup = async (req, res) => {
     const city = req.body.city;
     const state = req.body.state;
     const zipcode = req.body.zipcode;
-    const referral_by_code = req.body.referral_by_ || "none";
+    let referral_by_code = req.body.referral_by_code || "none";
+    let is_referral_exist=false
+    let referral_by_user=undefined
 
     console.log(email, password);
     // checkuing emapty
@@ -44,10 +46,18 @@ module.exports.signup = async (req, res) => {
       res.status(400).send("not valid email");
       return;
     }
-
+    const is_exist = await UserModel.findOne({email:email});
+    if(is_exist!=null){
+      console.log("user already exist")
+      res.status(400).json({msg:"user already exist"});
+     return 
+    }
     // encrypting password
     console.log();
     const encrypt_passowrd = await checks.encrypt_passowrd(password);
+
+
+
     const model_obj = {
       name: name,
       password: encrypt_passowrd,
@@ -59,25 +69,43 @@ module.exports.signup = async (req, res) => {
       city: city,
       state: state,
       zipcode: zipcode,
+      kyc_status_msg:"pending",
       amount: 0,
       kyc_status:false,
-      referral_by_code:referral_by_code,
+      is_referral_exist:is_referral_exist,
+
     };
 
+    // getting reffral code user id if reffral exist
+    console.log(referral_by_code,"referral_by_code")
+    if(referral_by_code==="none"|| referral_by_code===""||referral_by_code===null|| referral_by_code===undefined){
+      is_referral_exist=false
+      model_obj.is_referral_exist=is_referral_exist
+    }
+    else{
+      
+      const UserModel_resp=await UserModel.find({user_referral_code:referral_by_code})
+      if(UserModel_resp.length===1){
+        const user_id=UserModel_resp[0]._id
+        console.log("referral_by_user",user_id)
+        is_referral_exist=true;
+        model_obj.referral_by_user=user_id;
+        model_obj.is_referral_exist=is_referral_exist
+      }
+      console.log("UserModel_resp",UserModel_resp,"UserModel_resp")
+    }
 
 
     //  saving in db
 
-    const is_exist = await userModel.findOne({email:email});
-    if(is_exist!=null){
-      res.status(400).json({msg:"user already exist"});
-     return 
-    }
+  
 
-    const result = await userModel.create(model_obj);
+    const result = await UserModel.create(model_obj);
     console.log(result)
     print(req, { model_obj, result });
     res.status(201).json({msg:"user sign up sucessful"});
+    // res.status(400).json({msg:"user sign up sucessful"});
+
   } catch (error) {
     console.log(error);
     res.status(500).send("internal error");
@@ -105,7 +133,7 @@ print(req, { password, email });
     // }
 
 
-    const resp = await userModel.findOne({ email: email })
+    const resp = await UserModel.findOne({ email: email })
 
     if(resp!=null){
       print(req,{resp})

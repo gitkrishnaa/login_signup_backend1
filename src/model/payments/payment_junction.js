@@ -15,6 +15,7 @@ is_reffral_exist:{type:Boolean,required:true},
 reffral_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 transaction:{type:mongoose.Types.ObjectId,ref:model_names_obj.transactions},
 // plan_contents:{type:mongoose.Types.ObjectId,ref:model_names_obj.plan_contents},
+discount:{type:mongoose.Types.ObjectId,ref:model_names_obj.discount},
 commision_payments:{type:mongoose.Types.ObjectId,ref:model_names_obj.commision_payments},
 purchase_details:{type:mongoose.Types.ObjectId,ref:model_names_obj.purchase_details},
 })

@@ -16,7 +16,6 @@ const schema=mongoose.Schema({
     commission_sales_value_csv:{required:true,type:Number},
     reffral_commission_percentage:{required:true,type:Number},
     is_discount:{required:true,type:Boolean},
-    is_discount:{type:Boolean,required:true},
     discount_percentage:{type:Number},
     all_calculations:{type:Object}
 })

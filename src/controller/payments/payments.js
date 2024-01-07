@@ -8,6 +8,8 @@ const UserModel = require("../../model/user/user");
 const Plan_model = require("../../model/master_user/plans");
 const Transaction_model = require("../../model/payments/transactions");
 const Purchase_details_model = require("../../model/payments/purchase_details");
+// payment junction - it used as junction for all model id which is releted to plan/course purchase
+const Payment_junction = require("../../model/payments/payment_junction");
 const {payment_calculations}=require("../../data/data")
 
 
@@ -114,13 +116,25 @@ module.exports.validation = async (req, res) => {
           commission_sales_value_csv:payment_calculations_data.commission_sales_value_csv,
           reffral_commission_percentage:payment_calculations_data.commision_percentage,
           reffral_commission_amount:payment_calculations_data.commission_amount,
+          is_discount:false,
           all_calculations:payment_calculations_data,
         })
+        // id or newly stored purchase_details
+      const Purchase_details_id=Purchase_details_model_resp._id
+      
+      console.log(payment_calculations_data)
+      console.log(Purchase_details_model_resp._id)
+
+      // const Payment_junction_resp =Payment_junction.create{
+
+      // }
+/*
+      checking, is reffral code is exist, 
+      if not exist not add or do any thing
+      if exist, then get that reffral use , creare a commmission and update the commission balence
+*/
 
 
-     
-       console.log(payment_calculations_data)
-        console.log(Purchase_details_model_resp)
 
 
 
