@@ -160,3 +160,16 @@ print(req, { password, email });
   }
  
 };
+module.exports.user_details=async(req,res)=>{
+try {
+  const user=req.user
+  console.log(user,"data")
+  const {name,email,user_referral_code}=await UserModel.findById(user.user_id)
+  // console.log(user_data,"user_data")
+  // const user_details=
+  res.status(200).json({msg:"ok",data:{name,email,user_referral_code}})
+} catch (error) {
+  console.log(error)
+  res.status(500).json({msg:"internal error"})
+}
+}
