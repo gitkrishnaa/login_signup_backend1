@@ -3,6 +3,7 @@ const UserModel = require("../../model/user/user");
 const jwt_utility = require("../../utility/jwt");
 const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
+const { model_names_obj } = require("../../model/Model_obj");
 const print = require("../../utility/utility").print;
 const referral_code_generator=require("../../utility/utility").referral_code_generator
 // user class
@@ -165,7 +166,7 @@ module.exports.user_details=async(req,res)=>{
 try {
   const user=req.user
   // console.log(user,"data")
-  const user_resp=await UserModel.findById(user.user_id)
+  const user_resp=await UserModel.findById(user.user_id).populate(model_names_obj.kyc)
   const {name,email,user_referral_code}=user_resp
 
   // getting data without  password 
