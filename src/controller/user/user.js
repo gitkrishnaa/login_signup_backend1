@@ -1,5 +1,7 @@
 const check = require("../../utility/user");
 const UserModel = require("../../model/user/user");
+const Plans_model = require("../../model/master_user/plans");
+
 const jwt_utility = require("../../utility/jwt");
 const auth = require("../../auth/auth");
 const checks = require("../../utility/checks");
@@ -166,13 +168,24 @@ module.exports.user_details=async(req,res)=>{
 try {
   const user=req.user
   // console.log(user,"data")
-  const user_resp=await UserModel.findById(user.user_id).populate(model_names_obj.kyc)
+  const user_resp=await UserModel.findById(user.user_id).populate("kyc plan_purchase_details")
   const {name,email,user_referral_code}=user_resp
-
-  // getting data without  password 
+  const enrolled_plan_id=user_resp.plan_purchase_details.plan;
   const {password,...rest}=user_resp._doc
 
+  // getting enrolled plan details
+  if(user_resp.is_enrolled==true){
+      const plans_model_data_resp=await Plans_model.findById(enrolled_plan_id);
+     console.log("plans_model_data_resp",plans_model_data_resp)
+     res.status(200).json({msg:"ok",data:{name,email,user_referral_code,user:rest,enrolled_plan:plans_model_data_resp}})
+
+  }
+else{
   res.status(200).json({msg:"ok",data:{name,email,user_referral_code,user:rest}})
+
+}
+  // getting data without  password 
+
 } catch (error) {
   console.log(error)
   res.status(500).json({msg:"internal error"})

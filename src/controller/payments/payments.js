@@ -97,7 +97,7 @@ module.exports.validation = async (req, res) => {
 
     var isSignatureValid = generatedSignature == razorpay_signature; //boolean true/false
     if (isSignatureValid) {
-      console.log(transaction_id);
+      // console.log(transaction_id);
       const transaction__update_resp =
         await Transaction_model.findByIdAndUpdate(
           { _id: transaction_id },
@@ -113,7 +113,7 @@ module.exports.validation = async (req, res) => {
       const user_obj = transaction_resp.user;
       const user_id = transaction_resp.user._id;
       const plan_id = plan_obj._id;
-      console.log(transaction_resp);
+      // console.log(transaction_resp);
 
       const plans_price = plan_obj.price;
       const gst_percentage = plan_obj.gst;
@@ -192,16 +192,18 @@ module.exports.validation = async (req, res) => {
       });
     
       const Payment_junction_id=Payment_junction_resp._id
-    //now updating user model of plan/course purchase
+    //now updating user model of plan/course purchase,is_enrolled and 
+    // updating balance
+     console.log(user_obj,"user_obj,user_obj")
      const userModel_update_resp =await UserModel.findByIdAndUpdate({_id:user_id},{
       plan_purchase_details:Payment_junction_id,
       is_enrolled:true,
     })
 
-      console.log(payment_calculations_data);
-      console.log(Purchase_details_model_resp._id);
-      console.log(Payment_junction_resp);
-      console.log(userModel_update_resp);
+      // console.log(payment_calculations_data);
+      // console.log(Purchase_details_model_resp._id);
+      // console.log(Payment_junction_resp);
+      // console.log(userModel_update_resp);
       res.status(200).json({ msg: "successfully purchased" });
     } else {
       res
