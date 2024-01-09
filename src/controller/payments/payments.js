@@ -13,6 +13,7 @@ const Commision_tranaction = require("../../model/payments/commission_transactio
 // payment junction - it used as junction for all model id which is releted to plan/course purchase
 const Payment_junction = require("../../model/payments/payment_details_junction");
 const { payment_calculations } = require("../../data/data");
+const userModel = require("../../model/payments/commission_transaction");
 
 const razorpay_key_id = process.env.RAZOPAY_KEY_ID;
 const razorpay_key_secret = process.env.RAZOPAY_KEY_SECRET;
@@ -151,6 +152,10 @@ module.exports.validation = async (req, res) => {
       if not exist not add or do any thing
       if exist, then get that reffral use , creare a commmission and update the commission balence
 */
+
+//  geting reffral user id
+
+     const referral_user_id=user_obj.referral_by_user
       const Payment_junction_model = {
         user: user_id,
         plan: plan_id,
@@ -161,11 +166,11 @@ module.exports.validation = async (req, res) => {
       // updating Payment_junction_model
       if (user_obj.is_referral_exist == true) {
         Payment_junction_model.is_reffral_exist = true;
-        Payment_junction_model.reffral_user = user_obj.referral_by_user;
+        Payment_junction_model.reffral_user = referral_user_id;
 
         //  adding commission balence in reffral user
-        // commission_balance
-
+        // const previous_trffral_user_commission_balance=UserModel.findById()
+        // const user_update_resp=UserModel.findByIdAndUpdate({_id:},{})
         // add commision and commision model if reffral exist
         const Commision_tranaction_resp = await Commision_tranaction.create({
           is_amount_added: true,
@@ -185,10 +190,18 @@ module.exports.validation = async (req, res) => {
         ...Payment_junction_model,
         // commision_payments:it will added after commission document created,
       });
+    
+      const Payment_junction_id=Payment_junction_resp._id
+    //now updating user model of plan/course purchase
+     const userModel_update_resp =await UserModel.findByIdAndUpdate({_id:user_id},{
+      plan_purchase_details:Payment_junction_id,
+      is_enrolled:true,
+    })
+
       console.log(payment_calculations_data);
       console.log(Purchase_details_model_resp._id);
       console.log(Payment_junction_resp);
-
+      console.log(userModel_update_resp);
       res.status(200).json({ msg: "successfully purchased" });
     } else {
       res

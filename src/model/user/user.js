@@ -18,13 +18,15 @@ const userSchema = mongoose.Schema({
   // kyc releted
   kyc_status:{type:Boolean,required:true},
   kyc_status_msg:{type:String,required:true},
-  kyc_details:{type:mongoose.Types.ObjectId, ref:model_names_obj.kyc},
+  kyc_upload:{type:Boolean,required:true},
+  kyc:{type:mongoose.Types.ObjectId, ref:model_names_obj.kyc},//kyc model id
   //reffral releted
   is_referral_exist:{type:Boolean,required:true},
   referral_by_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user,},
-
-  // referral_by_code:{type:String,required:true}
-
+// if course/plan is enrolled these will get updated
+  is_enrolled:{type:Boolean,required:true},
+  // it will be payment_junction which record all details
+  plan_purchase_details:{type:mongoose.Types.ObjectId,ref:model_names_obj.payment_details}
 });
 
 const userModel = mongoose.model(model_names_obj.user, userSchema);

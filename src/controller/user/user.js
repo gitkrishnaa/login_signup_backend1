@@ -69,11 +69,12 @@ module.exports.signup = async (req, res) => {
       city: city,
       state: state,
       zipcode: zipcode,
-      kyc_status_msg:"pending",
+      kyc_upload:false,
+      kyc_status_msg:"kyc pending",
       commission_balance: 0,
       kyc_status:false,
       is_referral_exist:is_referral_exist,
-
+      is_enrolled:false,
     };
 
     // getting reffral code user id if reffral exist
@@ -163,11 +164,14 @@ print(req, { password, email });
 module.exports.user_details=async(req,res)=>{
 try {
   const user=req.user
-  console.log(user,"data")
-  const {name,email,user_referral_code}=await UserModel.findById(user.user_id)
-  // console.log(user_data,"user_data")
-  // const user_details=
-  res.status(200).json({msg:"ok",data:{name,email,user_referral_code}})
+  // console.log(user,"data")
+  const user_resp=await UserModel.findById(user.user_id)
+  const {name,email,user_referral_code}=user_resp
+
+  // getting data without  password 
+  const {password,...rest}=user_resp._doc
+
+  res.status(200).json({msg:"ok",data:{name,email,user_referral_code,user:rest}})
 } catch (error) {
   console.log(error)
   res.status(500).json({msg:"internal error"})
