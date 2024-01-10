@@ -24,7 +24,8 @@ module.exports.kyc_upload=async (req,res)=>{
     const user_resp=await UserModel.findByIdAndUpdate({_id:user_id},{
         kyc_status_msg:"user uploaded data,waiting for verification",
         kyc_upload:true,
-        kyc:kyc_resp._id
+        kyc:kyc_resp._id,
+        kyc_status:false,
 
     })
     console.log(kyc_resp)
