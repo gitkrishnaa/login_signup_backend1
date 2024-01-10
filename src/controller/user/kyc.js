@@ -55,6 +55,8 @@ module.exports.kyc_validation_by_master_user=async (req,res)=>{
             kyc_status_msg:kyc_status_msg,
             kyc_status:kyc_status_boolean
         })
+        console.log(user_resp)
+
     }
     else{
         kyc_status_boolean=false
@@ -63,6 +65,8 @@ module.exports.kyc_validation_by_master_user=async (req,res)=>{
             kyc_status:kyc_status_boolean,
             kyc_upload:false,
         })
+        console.log(user_resp)
+
     }
 
     
@@ -71,10 +75,10 @@ module.exports.kyc_validation_by_master_user=async (req,res)=>{
 
   
 
-    console.log(user_resp)
     res.status(200).json({msg:"kyc data updated sucessfully"})
   
     } catch (error) {
+        console.log(error)
         res.status(500).json({msg:"internal error"})
 
     }

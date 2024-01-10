@@ -62,17 +62,15 @@ module.exports.order = async (req, res) => {
     console.log(plan_details);
     console.log(transaction_resp);
     console.log(options);
-    res
-      .status(200)
-      .json({
-        order_id: resp.id,
-        options: options,
-        prefill: {
-          name: user_resp.name,
-          email: user_resp.email,
-          contact: user_resp.mobile,
-        },
-      });
+    res.status(200).json({
+      order_id: resp.id,
+      options: options,
+      prefill: {
+        name: user_resp.name,
+        email: user_resp.email,
+        contact: user_resp.mobile,
+      },
+    });
     // res.status(200).json({msg:"ok" });
   } catch (error) {
     console.log(error);
@@ -83,6 +81,7 @@ module.exports.validation = async (req, res) => {
   // this is to validate that orderid and payment_id is not harmed or malformed or hacked
   // for help- https://github.com/razorpay/razorpay-php/issues/156
   try {
+    console.log("validation")
     console.log(req.body);
     is_empty(req.body.payload);
     const razorpay_order_id = req.body.payload.razorpay_order_id;
@@ -103,7 +102,7 @@ module.exports.validation = async (req, res) => {
           { _id: transaction_id },
           { status_msg: "sucessful", status: true }
         );
-
+    console.log(transaction__update_resp)
       // get plan and user from transaction model
       const transaction_resp = await Transaction_model.findOne({
         _id: transaction_id,
@@ -153,9 +152,9 @@ module.exports.validation = async (req, res) => {
       if exist, then get that reffral use , creare a commmission and update the commission balence
 */
 
-//  geting reffral user id
+      //  geting reffral user id
 
-     const referral_user_id=user_obj.referral_by_user
+      const referral_user_id = user_obj.referral_by_user;
       const Payment_junction_model = {
         user: user_id,
         plan: plan_id,
@@ -190,15 +189,18 @@ module.exports.validation = async (req, res) => {
         ...Payment_junction_model,
         // commision_payments:it will added after commission document created,
       });
-    
-      const Payment_junction_id=Payment_junction_resp._id
-    //now updating user model of plan/course purchase,is_enrolled and 
-    // updating balance
-     console.log(user_obj,"user_obj,user_obj")
-     const userModel_update_resp =await UserModel.findByIdAndUpdate({_id:user_id},{
-      plan_purchase_details:Payment_junction_id,
-      is_enrolled:true,
-    })
+
+      const Payment_junction_id = Payment_junction_resp._id;
+      //now updating user model of plan/course purchase,is_enrolled and
+      // updating balance
+      console.log(user_obj, "user_obj,user_obj");
+      const userModel_update_resp = await UserModel.findByIdAndUpdate(
+        { _id: user_id },
+        {
+          plan_purchase_details: Payment_junction_id,
+          is_enrolled: true,
+        }
+      );
 
       // console.log(payment_calculations_data);
       // console.log(Purchase_details_model_resp._id);
@@ -206,11 +208,9 @@ module.exports.validation = async (req, res) => {
       // console.log(userModel_update_resp);
       res.status(200).json({ msg: "successfully purchased" });
     } else {
-      res
-        .status(400)
-        .json({
-          msg: "purchase is not sucessful, please contact to customercare",
-        });
+      res.status(400).json({
+        msg: "purchase is not sucessful, please contact to customercare",
+      });
     }
   } catch (error) {
     console.log(error);
