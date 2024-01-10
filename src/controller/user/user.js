@@ -170,15 +170,14 @@ try {
   // console.log(user,"data")
   const user_resp=await UserModel.findById(user.user_id).populate("kyc plan_purchase_details")
   const {name,email,user_referral_code}=user_resp
-  const enrolled_plan_id=user_resp.plan_purchase_details.plan;
   const {password,...rest}=user_resp._doc
 
   // getting enrolled plan details
   if(user_resp.is_enrolled==true){
+    const enrolled_plan_id=user_resp.plan_purchase_details.plan;
       const plans_model_data_resp=await Plans_model.findById(enrolled_plan_id);
      console.log("plans_model_data_resp",plans_model_data_resp)
      res.status(200).json({msg:"ok",data:{name,email,user_referral_code,user:rest,enrolled_plan:plans_model_data_resp}})
-
   }
 else{
   res.status(200).json({msg:"ok",data:{name,email,user_referral_code,user:rest}})
