@@ -1,5 +1,5 @@
 const checks = require("../../utility/checks");
-const plan_model = require("../../model/master_user/plans");
+const Plan_model = require("../../model/master_user/plans");
 
 module.exports.add_plan = async (req, res) => {
   try {
@@ -43,3 +43,18 @@ module.exports.discount_on_plan = async (req, res) => {
     res.status(500).json({ msg: "internal error" });
   }
 };
+module.exports.update_meeting_link=async (req,res)=>{
+try {
+  const {selected_plan_id,meeting_link,message}=req.body;
+  checks.is_empty_variable(selected_plan_id,meeting_link)
+  const plan_model_resp=await Plan_model.findByIdAndUpdate({_id:selected_plan_id},{
+    meeting_link:meeting_link,
+    meeting_msg:message,
+  })
+console.log(plan_model_resp)
+  res.status(200).json({msg:"meeting link updated sucessfully"})
+} catch (error) {
+  res.status(500).json({msg:"error in meetig link update"})
+
+}
+}

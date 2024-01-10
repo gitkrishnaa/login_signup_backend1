@@ -12,6 +12,10 @@ gst:{type:Number},
 is_discount:{type:Boolean},
 discount:{type:mongoose.Types.ObjectId,ref:model_names_obj.discount,},
 plan_contents:{type:mongoose.Types.ObjectId,ref:model_names_obj.plan_contents,},
+meeting_link:{type:String},
+meeting_msg:{type:String},
+
+
 })
 const model = mongoose.model(model_names_obj.plans, schema);
 

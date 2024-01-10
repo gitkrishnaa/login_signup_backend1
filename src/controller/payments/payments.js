@@ -145,6 +145,7 @@ module.exports.validation = async (req, res) => {
       });
       // id or newly stored purchase_details
       const Purchase_details_id = Purchase_details_model_resp._id;
+      console.log("Purchase_details_id",Purchase_details_id)
 
       /*
       checking, is reffral code is exist, 
@@ -161,9 +162,12 @@ module.exports.validation = async (req, res) => {
         transaction: transaction_id,
         is_discount: false,
         purchase_details: Purchase_details_id,
-      };
+      };  
+      console.log(user_obj)
+      console.log("referral_user_id",referral_user_id)
       // updating Payment_junction_model
       if (user_obj.is_referral_exist == true) {
+        console.log("user_obj.is_referral_exist",user_obj.is_referral_exist)
         Payment_junction_model.is_reffral_exist = true;
         Payment_junction_model.reffral_user = referral_user_id;
 

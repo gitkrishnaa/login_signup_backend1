@@ -13,10 +13,11 @@ const user_kyc = require("../controller/user/kyc.js");
 const jwt_verify = auth.jwt_token_verify;
 
 
-const MASTER_ADMIN_CODE = process.env.MASTER_ADMIN_CODE;
+const MASTER_ADMIN_CODE = process.env.MASTER_CODE;
 const sequrity_middlewere = (req, res, next) => {
     console.log("@sequrity_middlewere")
   const request = req.body;
+  console.log(request)
   if (req.body.master_code == undefined) {
     console.log(
       "you cant access api without master_code,please read documentation of master_user"
@@ -44,6 +45,7 @@ route.post("/login",sequrity_middlewere,account.login);
 route.get("/all_users",jwt_verify,user_data.all_users);
 route.post("/user_details",jwt_verify,user_data.user_details);
 route.post("/kyc_verification",jwt_verify,user_kyc.kyc_validation_by_master_user);
+route.post("/update_meeting_link",jwt_verify,plans.update_meeting_link);
 
 route.post("/add_plan",plans.add_plan);
 route.post("/discount_on_plan",plans.discount_on_plan);

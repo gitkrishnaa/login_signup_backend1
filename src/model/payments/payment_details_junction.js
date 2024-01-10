@@ -12,7 +12,7 @@ const schema=mongoose.Schema({
 user:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 plan:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.plans},
 is_reffral_exist:{required:true,type:Boolean,required:true},
-reffral_user:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.user},
+reffral_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 transaction:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.transactions},
 // plan_contents:{type:mongoose.Types.ObjectId,ref:model_names_obj.plan_contents},
 is_discount:{required:true,type:Boolean},
