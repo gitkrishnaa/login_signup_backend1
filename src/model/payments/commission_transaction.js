@@ -9,12 +9,12 @@ const { model_names_obj } = require("../Model_obj");
 reffral_user_id-the user who recieve the commision, or user that reffral code used in purchase of course by that other user
 payments_id- all detais, like junction
 paid- if amount added in reffral user then update it to true
-
 */
 
 const userSchema = mongoose.Schema({
 payments_junction:{type:mongoose.Types.ObjectId,ref:model_names_obj.payment_details},
 is_amount_added:{required:true,type:Boolean},
+// half commission will be added instant and half will be added after 7 days using cron jobs
 commission_amount:{required:true,type:Number},
 },{ timestamps: true });
 

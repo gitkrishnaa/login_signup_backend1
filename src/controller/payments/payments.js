@@ -155,7 +155,7 @@ module.exports.validation = async (req, res) => {
 
       //  geting reffral user id
 
-      const referral_user_id = user_obj.referral_by_user;
+      
       const Payment_junction_model = {
         user: user_id,
         plan: plan_id,
@@ -164,9 +164,31 @@ module.exports.validation = async (req, res) => {
         purchase_details: Purchase_details_id,
       };  
       console.log(user_obj)
-      console.log("referral_user_id",referral_user_id)
       // updating Payment_junction_model
       if (user_obj.is_referral_exist == true) {
+
+        // getting reffral user id if reffral exist
+        console.log(["updating commission balence"])
+        const referral_user_id = user_obj.referral_by_user;
+        // getting reffral user object
+        const reffral_user_obj=await UserModel.findById(referral_user_id);
+        // logic for balenc update
+        // get old balence, add 50%  commisiion then add then update it
+        console.log(reffral_user_obj)
+        const prev_commission_balance=reffral_user_obj.commission_balance
+        console.log(prev_commission_balance)
+        // note- only half commission will be added instant and half will be add after 7 days
+        // for 7 days, it will be updated using cron jobs
+        const caluculated_total_commision=payment_calculations_data.commision_amount_after_TDS;
+        const half_commission_value=Math.round(caluculated_total_commision/2)
+        const new_half_commission_balence=Number(prev_commission_balance)+Number(half_commission_value);
+
+        const reffral_user_update_resp=await UserModel.findByIdAndUpdate({_id:referral_user_id},{
+          commission_balance:new_half_commission_balence
+        });
+        const reffral_user_obj2=await UserModel.findById(referral_user_id);
+
+        console.log(reffral_user_obj2)
         console.log("user_obj.is_referral_exist",user_obj.is_referral_exist)
         Payment_junction_model.is_reffral_exist = true;
         Payment_junction_model.reffral_user = referral_user_id;
@@ -177,8 +199,7 @@ module.exports.validation = async (req, res) => {
         // add commision and commision model if reffral exist
         const Commision_tranaction_resp = await Commision_tranaction.create({
           is_amount_added: true,
-          commission_amount:
-            payment_calculations_data.commision_amount_after_TDS,
+          commission_amount:payment_calculations_data.commision_amount_after_TDS,
         });
         console.log("Commision_tranaction_resp", Commision_tranaction_resp);
 
@@ -221,3 +242,14 @@ module.exports.validation = async (req, res) => {
     res.status(401).send("error");
   }
 };
+module.exports.balence_withdraw=async()=>{
+  try {
+    const payload=req.body.payload
+    console.log(payload)
+    resp.status(200).json({msg:"successful"})
+
+  } catch (error) {
+    console.log(error)
+    resp.status(500).json({msg:"error 789789"})
+  }
+}
