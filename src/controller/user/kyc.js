@@ -7,28 +7,28 @@ module.exports.kyc_upload=async (req,res)=>{
     console.log(req.user);
     const payload=req.body.payload
     const {user_id}=req.user
+    
+    // const kyc_resp=await kyc_model.create({
+    //     user_id:user_id,
+    //     name:payload.name,
+    //     adhar_card:payload.adhar_card_number,
+    //     adress:payload.adress,
+    //     uploaded_doc:"none",
+    //     pan_card:payload.pan_card_number,
+    //     bank_account_details:{
+    //         bank_name:payload.bank_details.bank_name,
+    //         account_number:payload.bank_details.bank_account_no,
+    //         ifsc_code:payload.bank_details.bank_ifsc_code,
+    //     },
+    // })
+    // const user_resp=await UserModel.findByIdAndUpdate({_id:user_id},{
+    //     kyc_status_msg:"user uploaded data,waiting for verification",
+    //     kyc_upload:true,
+    //     kyc:kyc_resp._id,
+    //     kyc_status:false,
 
-    const kyc_resp=await kyc_model.create({
-        user_id:user_id,
-        name:payload.name,
-        adhar_card:payload.adhar_card_number,
-        adress:payload.adress,
-        uploaded_doc:"none",
-        pan_card:payload.pan_card_number,
-        bank_account_details:{
-            bank_name:payload.bank_details.bank_name,
-            account_number:payload.bank_details.bank_account_no,
-            ifsc_code:payload.bank_details.bank_ifsc_code,
-        },
-    })
-    const user_resp=await UserModel.findByIdAndUpdate({_id:user_id},{
-        kyc_status_msg:"user uploaded data,waiting for verification",
-        kyc_upload:true,
-        kyc:kyc_resp._id,
-        kyc_status:false,
-
-    })
-    console.log(kyc_resp)
+    // })
+    // console.log(kyc_resp)
 
  res.status(201).json({msg:"kyc data uploaded sucessfully"})
   

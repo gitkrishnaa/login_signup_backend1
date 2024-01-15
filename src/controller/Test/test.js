@@ -1,7 +1,7 @@
 const { model_names_obj } = require("../../model/Model_obj")
 const Razorpay = require('razorpay');
 require('dotenv').config();
-
+const nodemailer = require('nodemailer');
 
 module.exports.test=async(req,res)=>{
 console.log(model_names_obj)
@@ -31,3 +31,40 @@ try {
     res.status(401).send("error")
 }
     }
+
+module.exports.devloper = async (req, res) => {
+
+    try {
+      var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'kritestemail123@gmail.com',
+          pass: 'uoej mujq ymoj ctyg'
+        }
+      });
+      
+      var mailOptions = {
+        from: 'kritestemail123@gmail.com',
+        to: 'Krishna821084@gmail.com',
+        subject: 'Sending Email using Node.js',
+        text: 'That was easy!'
+      };
+      
+      transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+    } catch (error) {
+      
+    }
+
+
+
+
+
+
+      res.send("ok email");
+    };
