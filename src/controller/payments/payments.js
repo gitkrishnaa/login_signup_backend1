@@ -242,14 +242,4 @@ module.exports.validation = async (req, res) => {
     res.status(401).send("error");
   }
 };
-module.exports.balence_withdraw=async()=>{
-  try {
-    const payload=req.body.payload
-    console.log(payload)
-    resp.status(200).json({msg:"successful"})
 
-  } catch (error) {
-    console.log(error)
-    resp.status(500).json({msg:"error 789789"})
-  }
-}

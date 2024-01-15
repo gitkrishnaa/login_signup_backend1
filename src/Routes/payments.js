@@ -1,11 +1,13 @@
 const payments = require('../controller/payments/payments');
+const commission = require('../controller/commission/commission_withdraw_user');
+
 const auth = require("../auth/auth");
 const jwt_verify = auth.jwt_token_verify;
 const route=require('express').Router();
 
-
+// commission and payment is releted to payments, it will be in payment route
 route.post("/order",jwt_verify,payments.order),
 route.post("/validation",jwt_verify,payments.validation),
-route.post("/balence_withdraw",jwt_verify,payments.balence_withdraw),
+route.post("/balance_withdraw",jwt_verify,commission.commission_balance_withdraw),
 
 module.exports = route;
