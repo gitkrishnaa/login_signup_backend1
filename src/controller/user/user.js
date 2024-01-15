@@ -33,8 +33,8 @@ module.exports.signup = async (req, res) => {
     const state = req.body.state;
     const zipcode = req.body.zipcode;
     let referral_by_code = req.body.referral_by_code || "none";
-    let is_referral_exist=false
-    let referral_by_user=undefined
+    let is_referral_exist=false;
+    let referral_by_user=undefined;
 
     console.log(email, password);
     // checkuing emapty
@@ -181,12 +181,11 @@ try {
   }
 else{
   res.status(200).json({msg:"ok",data:{name,email,user_referral_code,user:rest}})
-
 }
-  // getting data without  password 
+  // getting data without password 
 
 } catch (error) {
-  console.log(error)
+  console.log(error);
   res.status(500).json({msg:"internal error"})
 }
 }
