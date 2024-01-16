@@ -3,11 +3,12 @@ const UserModel = require("../../model/user/user");
 
 module.exports.kyc_upload=async (req,res)=>{
     try {
-        console.log(req.body);
-    console.log(req.user);
-    const payload=req.body.payload
-    const {user_id}=req.user
-    
+    //     console.log(req.body);
+    // console.log(req.user);
+    // const payload=req.body.payload
+    // const {user_id}=req.user
+    // console.log(payload)
+    console.log("req.files",req.files)
     // const kyc_resp=await kyc_model.create({
     //     user_id:user_id,
     //     name:payload.name,
@@ -29,7 +30,7 @@ module.exports.kyc_upload=async (req,res)=>{
 
     // })
     // console.log(kyc_resp)
-
+ 
  res.status(201).json({msg:"kyc data uploaded sucessfully"})
   
     } catch (error) {
