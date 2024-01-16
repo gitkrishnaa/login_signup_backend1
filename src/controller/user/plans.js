@@ -4,6 +4,7 @@ const plan_model = require("../../model/master_user/plans");
 module.exports.get_all_plans=async (req,res)=>{
 
     try {
+    
     const result=await plan_model.find();
     // console.log(result)
     res.status(200).json({msg:"ok",data:result}) 

@@ -1,5 +1,6 @@
 const checks = require("../../utility/checks");
 const Plan_model = require("../../model/master_user/plans");
+
 const { payment_calculations } = require("../../data/data");
 
 module.exports.add_plan = async (req, res) => {
@@ -91,13 +92,20 @@ module.exports.plan_discount = async (req, res) => {
 module.exports.discount_on_plan = async (req, res) => {
   try {
     console.log(req.body);
-    const plan_name = req.body.plan_name;
+    const plan_id=req.body.plan_id
+    const discount_status = req.body.discount_status;
+    const discount_percentage = req.body.discount_percentage;
 
-    // const insert_result=await plan_model.updateAll()
-    // insert_result.map()
+    checks.is_empty_variable(plan_id,discount_status,discount_percentage)
+    const resp=await Plan_model.findByIdAndUpdate({_id:plan_id},{
+      discount_percentage:discount_percentage,
+      is_discount:discount_status
 
-    console.log(insert_result);
+    })
+   console.log(resp)
 
+
+    
     res.status(200).json({ msg: "discount applied" });
   } catch (error) {
     console.log(error);
@@ -119,3 +127,24 @@ console.log(plan_model_resp)
 
 }
 }
+
+
+module.exports.all_plans=async (req,res)=>{
+    
+    try {
+      
+    const result=await Plan_model.find();
+
+    const new_data_arr=result.map((d)=>{
+    const payment_calculations_result=payment_calculations(d.price,d.gst,d.commision_percentage,5);
+    return {
+      ...d._doc,calculations:payment_calculations_result
+    }
+    })
+  
+    res.status(200).json({msg:"master user",data:new_data_arr}) 
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({msg:"internal error"})   
+    }
+    }

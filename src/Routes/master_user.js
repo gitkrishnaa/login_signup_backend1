@@ -48,6 +48,7 @@ route.post("/kyc_verification",jwt_verify,user_kyc.kyc_validation_by_master_user
 route.post("/update_meeting_link",jwt_verify,plans.update_meeting_link);
 // plans part,plan mean course
 route.post("/add_plan",plans.add_plan);
+route.get("/all_plan",plans.all_plans);
 route.post("/discount_on_plan",plans.discount_on_plan);
 // editing plans
 route.patch("/edit_plan",plans.edit_plan);
