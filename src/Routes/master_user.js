@@ -4,6 +4,7 @@ const plans=require("../controller/master_user/plans.js")
 const account=require("../controller/master_user/account.js");
 const user_data = require("../controller/master_user/user_data.js");
 const user_kyc = require("../controller/user/kyc.js");
+const coupon=require("../controller/master_user/coupon.js")
 
 
 
@@ -52,4 +53,10 @@ route.get("/all_plan",plans.all_plans);
 route.post("/discount_on_plan",plans.discount_on_plan);
 // editing plans
 route.patch("/edit_plan",plans.edit_plan);
+// coupan codes
+route.post("/add_coupon",jwt_verify,coupon.add_coupon);
+route.get("/all_coupons",jwt_verify,coupon.all_coupons);
+route.post("/delete_coupon",jwt_verify,coupon.delete_coupon);
+
+// route.patch("/edit_coupon_code",plans.edit_plan);
 module.exports = route;

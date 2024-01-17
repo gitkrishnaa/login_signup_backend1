@@ -21,7 +21,8 @@ module.exports.model_names_obj={
     commission_withdraw_user:"commission_withdraw_user",
     commission_send_admin:"commission_send_admin",
 
-
+// coupon
+coupon_model:"coupon",
 
 
 }
