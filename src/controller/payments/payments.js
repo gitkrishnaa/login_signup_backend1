@@ -112,16 +112,16 @@ const coupon_code_verification=async (coupon_code)=>{
 
 }
 
-// for showing plan details and all calculation like discount,gst tax ,coupon etc
-module.exports.plan_and_payments_calc = async (req, res) => {
+
+// for showing plan details and all calculation, it will be used in this controlled, it will be modified also
+// note- this function will decide all the calculation , discount and coupon validation
+// note- by using this we will handle "plan_and_payments_calc" route
+const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon) => {
   try {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
 
-    console.log(req.body);
-    const id = req.body.payload.id;
-    const is_coupon = req.body.payload.is_coupon;
 
-    const plan_details = await Plan_model.findById(id);
+    const plan_details = await Plan_model.findById(plan_id);
     // console.log(plan_details)
     const {
       meeting_link,
@@ -129,12 +129,14 @@ module.exports.plan_and_payments_calc = async (req, res) => {
       meeting_msg,
       ...plan_detalis_send
     } = plan_details._doc;
+
     const { active, price, is_discount, discount_percentage, gst } =
       plan_details._doc;
-    console.log(active);
+    // console.log(active);
     if (active === false) {
-      res.status(403).json({ msg: "plan is deactivated" });
-      return;
+       // res.status(403).json({ msg: "plan is deactivated" });
+      // return;
+      return {status_code:403,status:false,msg:"plan is deactivated"}
     }
 
     // price cal
@@ -166,26 +168,146 @@ module.exports.plan_and_payments_calc = async (req, res) => {
         gst,
       };
       const price_detais = plan_payment_calculation(price_data_details);
-      res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+      
+      // res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+      //   is_coupon_valid:true
+      // });
+      return {status_code:200,msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
         is_coupon_valid:true
-      });
+      }
      }
      else{
       console.log("coupon code is not valid")
-      res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
-        is_coupon_valid:false
-        });
+      // res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+      //   is_coupon_valid:false
+      //   });
+
+        return {status_code:200,msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+          is_coupon_valid:false
+          }
      }
     
     }
     else {
       // geting caluclations when no coupon code
       console.log("coupon code not exist")
-      res.status(200).json({msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
-          });
+      // res.status(200).json({msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
+      //     });
+      return {status_code:200,msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
+          }
+      
     }
-
     // res.status(200).json({msg:"ok",data:result})
+  } catch (error) {
+    console.log(error);
+    // res.status(500).json({ msg: "internal error" });
+    return {status:500, msg:"internal error" }
+  }
+};
+
+// for showing plan details and all calculation like discount,gst tax ,coupon etc
+// module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
+//   try {
+//     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
+
+//     console.log(req.body);
+//     const plan_id = req.body.payload.id;
+//     const is_coupon = req.body.payload.is_coupon;
+
+//     const plan_details = await Plan_model.findById(plan_id);
+//     // console.log(plan_details)
+//     const {
+//       meeting_link,
+//       commision_percentage,
+//       meeting_msg,
+//       ...plan_detalis_send
+//     } = plan_details._doc;
+
+//     const { active, price, is_discount, discount_percentage, gst } =
+//       plan_details._doc;
+//     // console.log(active);
+//     if (active === false) {
+//       res.status(403).json({ msg: "plan is deactivated" });
+//       return;
+//     }
+
+//     // price cal
+//     const price_data_details = {
+//       is_discount,
+//       is_coupon: false,
+//       discount_percentage,
+//       coupon_discount_percentage: null,
+//       price,
+//       gst,
+//     };
+//     const price_detais = plan_payment_calculation(price_data_details);
+
+// // if coupon code
+//     if (is_coupon == true) {
+//       console.log("coupon code is exist")
+//       const coupon_code = req.body.payload.coupon_code;
+       
+//      const coupon_code_status=await coupon_code_verification(coupon_code);
+//      if(coupon_code_status.is_valid==true){
+//       console.log("coupon code valid")
+//        const coupon_discount_percentage=coupon_code_status.coupon_detais?.discount_percentage;
+//        const price_data_details = {
+//         is_discount,
+//         is_coupon: true,
+//         discount_percentage,
+//         coupon_discount_percentage: coupon_discount_percentage,
+//         price,
+//         gst,
+//       };
+//       const price_detais = plan_payment_calculation(price_data_details);
+//       res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+//         is_coupon_valid:true
+//       });
+//      }
+//      else{
+//       console.log("coupon code is not valid")
+//       res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+//         is_coupon_valid:false
+//         });
+//      }
+    
+//     }
+//     else {
+//       // geting caluclations when no coupon code
+//       console.log("coupon code not exist")
+//       res.status(200).json({msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
+//           });
+//     }
+
+//     // res.status(200).json({msg:"ok",data:result})
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ msg: "internal error" });
+//   }
+// };
+module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
+  try {
+    // note-only send plan_details that is not confidential like commission,meeting link , these not send in
+
+    
+    const plan_id = req.body.payload.id;
+    const is_coupon = req.body.payload.is_coupon;
+
+    const data=await plan_and_payments_and_coupon_code_calc_function(plan_id,is_coupon);
+    const {status_code,...rest_data}=data
+   console.log(data)
+   res.status(status_code).json(rest_data)
+  
+  
+
+       
+  
+    
+    
+    
+   
+
+    // res.status(202).json({msg:"ok"})
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: "internal error" });
