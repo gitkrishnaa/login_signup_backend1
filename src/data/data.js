@@ -46,17 +46,14 @@ commision_sales_value=%
 
 */
 
-
-
   const number_decimal_format = (number) => {
     return Number(number.toFixed(2));
   };
 
   function percentage(value, percent) {
     // return Math.round((value*percent)/100)
-     // return (Math.round((value*percent)/100) / 100).toFixed(2);
+    // return (Math.round((value*percent)/100) / 100).toFixed(2);
     return number_decimal_format((value * percent) / 100);
-   
   }
 
   const amount_without_gst = Number(amount);
@@ -90,15 +87,27 @@ commision_sales_value=%
 
   return obj;
 };
-// updated calculation
-const claculate_func2 = (
+// updated calculation 21.56 two decimal points
+const number_decimal_format = (number) => {
+
+  const in_number=Number(number)
+  console.log(in_number)
+  return Number(in_number.toFixed(2));
+};
+function percentage_value(value, percent) {
+  // return Math.round((value*percent)/100)
+  // return (Math.round((value*percent)/100) / 100).toFixed(2);
+  return number_decimal_format((value * percent) / 100);
+}
+
+// for plan price calculation where all calculation like gst, coupon, tds,commission,etc will calculated,all calculation that we need as data
+const payment_calculations = (
   amount,
   gst_percentage_p,
   commission_percentage_p,
   TDS_percentage_p
 ) => {
-
-/*
+  /*
   // logic for calculations
   //
  if amount is 1000
@@ -112,30 +121,28 @@ const claculate_func2 = (
  commission_after_tds=320-16=304
  
 */
-  const number_decimal_format = (number) => {
-    return Number(number.toFixed(2));
-  };
 
-  function percentage_value(value, percent) {
-    // return Math.round((value*percent)/100)
-     // return (Math.round((value*percent)/100) / 100).toFixed(2);
-    return number_decimal_format((value * percent) / 100);
-   
-  }
   const razorpay_charges_percentage = 2;
   const gst_percentage = Number(gst_percentage_p);
   const commision_percentage = Number(commission_percentage_p);
-  const TDS_percentage=Number(TDS_percentage_p);
-  
-  
-  const final_amount= Number(amount);
-  const amount_without_gst =percentage_value(final_amount,82);
-  const gst_amount=percentage_value(final_amount,gst_percentage);
-  const CSV_commission_sales_value = percentage_value(final_amount,80)
-  const commission_amount = percentage_value(CSV_commission_sales_value,commision_percentage)
-  const razorpay_charges_amount = percentage_value(final_amount,razorpay_charges_percentage);
+  const TDS_percentage = Number(TDS_percentage_p);
+
+  const final_amount = Number(amount);
+  const amount_without_gst = percentage_value(final_amount, 82);
+  const gst_amount = percentage_value(final_amount, gst_percentage);
+  const CSV_commission_sales_value = percentage_value(final_amount, 80);
+  const commission_amount = percentage_value(
+    CSV_commission_sales_value,
+    commision_percentage
+  );
+  const razorpay_charges_amount = percentage_value(
+    final_amount,
+    razorpay_charges_percentage
+  );
   const TDS_amount = percentage_value(commission_amount, TDS_percentage);
-  const commision_amount_after_TDS = number_decimal_format(commission_amount - TDS_amount);
+  const commision_amount_after_TDS = number_decimal_format(
+    commission_amount - TDS_amount
+  );
   const obj = {
     amount: final_amount,
     amount_without_gst,
@@ -146,7 +153,7 @@ const claculate_func2 = (
     commision_percentage,
     TDS_percentage: TDS_percentage_p,
     TDS_amount,
-    commission_sales_value_csv:CSV_commission_sales_value,
+    commission_sales_value_csv: CSV_commission_sales_value,
     commission_amount,
     commision_amount_after_TDS,
   };
@@ -154,4 +161,55 @@ const claculate_func2 = (
   return obj;
 };
 
-module.exports.payment_calculations = claculate_func2;
+// for plan price calculation where couponcode, discont, gst,it will be show to user when user puchase
+const plan_payment_calculation = (data) => {
+  // data:{
+  //   is_discount,
+  //   is_coupon,
+  //   discount_percentage,
+  //   coupon_discount_percentage,
+  //   plan_price
+  //   gst,
+  // }
+
+  const orignal_plan_price = data.price;
+  const is_discount = data.is_discount;
+  const is_coupon = data.is_coupon;
+  let final_plan_price = Number(orignal_plan_price);
+  const gst = data.gst;
+
+  let discount_percentage = null;
+  let coupon_discount_percentage = null;
+  let discount_value = null;
+  let coupon_discount_value = null;
+
+  if (is_discount == true) {
+    discount_percentage = data.discount_percentage;
+    discount_value = Number(final_plan_price * discount_percentage) / 100;
+    final_plan_price = final_plan_price - discount_value;
+  }
+  if (is_coupon == true) {
+    coupon_discount_percentage = data.coupon_discount_percentage;
+    coupon_discount_value =
+      Number(final_plan_price * coupon_discount_percentage) / 100;
+    final_plan_price = final_plan_price - coupon_discount_value;
+  }
+  const gst_value = Number(final_plan_price * gst) / 100;
+  const plan_price_without_gst = final_plan_price - gst_value;
+  return {
+    orignal_plan_price:number_decimal_format(orignal_plan_price),
+    final_plan_price:number_decimal_format(final_plan_price),
+    gst:number_decimal_format(gst),
+    gst_value:number_decimal_format(gst_value),
+    plan_price_without_gst:number_decimal_format(plan_price_without_gst),
+    discount_percentage:number_decimal_format(discount_percentage),
+    discount_value:number_decimal_format(discount_value),
+    coupon_discount_percentage:number_decimal_format(coupon_discount_percentage),
+    coupon_discount_value:number_decimal_format(coupon_discount_value),
+    is_discount,
+    is_coupon,
+  };
+};
+
+module.exports.payment_calculations = payment_calculations;
+module.exports.plan_payment_calculation = plan_payment_calculation;

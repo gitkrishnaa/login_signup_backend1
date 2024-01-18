@@ -9,14 +9,188 @@ const Plan_model = require("../../model/master_user/plans");
 const Transaction_model = require("../../model/payments/transactions");
 const Purchase_details_model = require("../../model/payments/purchase_details");
 const Commision_tranaction = require("../../model/payments/commission_transaction");
+const Coupon_model = require("../../model/master_user/coupon");
 
 // payment junction - it used as junction for all model id which is releted to plan/course purchase
 const Payment_junction = require("../../model/payments/payment_details_junction");
-const { payment_calculations } = require("../../data/data");
+const { payment_calculations, plan_payment_calculation } = require("../../data/data");
 const userModel = require("../../model/payments/commission_transaction");
 
 const razorpay_key_id = process.env.RAZOPAY_KEY_ID;
 const razorpay_key_secret = process.env.RAZOPAY_KEY_SECRET;
+
+
+// it is shifted in data folder or in data calcuation forlder
+// const plan_payment_calculation = (data) => {
+//   // data:{
+//   //   is_discount,
+//   //   is_coupon,
+//   //   discount_percentage,
+//   //   coupon_discount_percentage,
+//   //   plan_price
+//   //   gst,
+//   // }
+
+//   const orignal_plan_price = data.price;
+//   const is_discount = data.is_discount;
+//   const is_coupon = data.is_coupon;
+//   let final_plan_price = Number(orignal_plan_price);
+//   const gst = data.gst;
+
+//   let discount_percentage = null;
+//   let coupon_discount_percentage = null;
+//   let discount_value = null;
+//   let coupon_discount_value = null;
+
+//   if (is_discount == true) {
+//     discount_percentage = data.discount_percentage;
+//     discount_value = Number(final_plan_price * discount_percentage) / 100;
+//     final_plan_price = final_plan_price - discount_value;
+//   }
+//   if (is_coupon == true) {
+//     coupon_discount_percentage = data.coupon_discount_percentage;
+//     coupon_discount_value =
+//       Number(final_plan_price * coupon_discount_percentage) / 100;
+//     final_plan_price = final_plan_price - coupon_discount_value;
+//   }
+//   const gst_value = Number(final_plan_price * gst) / 100;
+//   const plan_price_without_gst = final_plan_price - gst_value;
+//   return {
+//     orignal_plan_price,
+//     final_plan_price,
+//     gst,
+//     gst_value,
+//     plan_price_without_gst,
+//     is_discount,
+//     is_coupon,
+//     discount_percentage,
+//     discount_value,
+//     coupon_discount_percentage,
+//     coupon_discount_value,
+//   };
+// };
+
+const coupon_code_verification=async (coupon_code)=>{
+  console.log("coupon_code_verification()")
+  console.log(coupon_code)
+  try {
+    const compareDates = (d1, d2) => {
+      let date1 = new Date(d1).getTime();
+      let date2 = new Date(d2).getTime();
+      console.log(date1,date2)
+      if (date1 > date2) {
+        return true;
+      } else {
+       return false;
+      }
+    }
+    console.log("getting details of coupon")
+    const coupon_detais =await Coupon_model.findOne({ coupon_code: coupon_code });
+    console.log(coupon_detais)
+  
+    if(coupon_detais==null){
+      return {is_valid:false,msg:"coupon not found"}
+    }
+    const expiry_date_status=compareDates(coupon_detais.expire_date,Date.now())
+    console.log(expiry_date_status)
+    if(coupon_detais.active==false){
+      return {is_valid:false,msg:"coupon code is not active"}
+    }
+    else if(expiry_date_status==false){
+      return {is_valid:false,msg:"coupon is expired"}
+    }
+    else if(coupon_detais.active==true && expiry_date_status==true && coupon_detais.deleted==false ){
+      return {is_valid:true,msg:"coupon applied",coupon_detais}
+    }
+   else{
+    return {is_valid:false,msg:"not found"}
+   }
+  } catch (error) {
+    console.log(error)
+  }
+
+
+}
+
+// for showing plan details and all calculation like discount,gst tax ,coupon etc
+module.exports.plan_and_payments_calc = async (req, res) => {
+  try {
+    // note-only send plan_details that is not confidential like commission,meeting link , these not send in
+
+    console.log(req.body);
+    const id = req.body.payload.id;
+    const is_coupon = req.body.payload.is_coupon;
+
+    const plan_details = await Plan_model.findById(id);
+    // console.log(plan_details)
+    const {
+      meeting_link,
+      commision_percentage,
+      meeting_msg,
+      ...plan_detalis_send
+    } = plan_details._doc;
+    const { active, price, is_discount, discount_percentage, gst } =
+      plan_details._doc;
+    console.log(active);
+    if (active === false) {
+      res.status(403).json({ msg: "plan is deactivated" });
+      return;
+    }
+
+    // price cal
+    const price_data_details = {
+      is_discount,
+      is_coupon: false,
+      discount_percentage,
+      coupon_discount_percentage: null,
+      price,
+      gst,
+    };
+    const price_detais = plan_payment_calculation(price_data_details);
+
+// if coupon code
+    if (is_coupon == true) {
+      console.log("coupon code is exist")
+      const coupon_code = req.body.payload.coupon_code;
+       
+     const coupon_code_status=await coupon_code_verification(coupon_code);
+     if(coupon_code_status.is_valid==true){
+      console.log("coupon code valid")
+       const coupon_discount_percentage=coupon_code_status.coupon_detais?.discount_percentage;
+       const price_data_details = {
+        is_discount,
+        is_coupon: true,
+        discount_percentage,
+        coupon_discount_percentage: coupon_discount_percentage,
+        price,
+        gst,
+      };
+      const price_detais = plan_payment_calculation(price_data_details);
+      res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+        is_coupon_valid:true
+      });
+     }
+     else{
+      console.log("coupon code is not valid")
+      res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
+        is_coupon_valid:false
+        });
+     }
+    
+    }
+    else {
+      // geting caluclations when no coupon code
+      console.log("coupon code not exist")
+      res.status(200).json({msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
+          });
+    }
+
+    // res.status(200).json({msg:"ok",data:result})
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "internal error" });
+  }
+};
 
 module.exports.order = async (req, res) => {
   // console.log(req.body)
@@ -81,7 +255,7 @@ module.exports.validation = async (req, res) => {
   // this is to validate that orderid and payment_id is not harmed or malformed or hacked
   // for help- https://github.com/razorpay/razorpay-php/issues/156
   try {
-    console.log("validation")
+    console.log("validation");
     console.log(req.body);
     is_empty(req.body.payload);
     const razorpay_order_id = req.body.payload.razorpay_order_id;
@@ -102,7 +276,7 @@ module.exports.validation = async (req, res) => {
           { _id: transaction_id },
           { status_msg: "sucessful", status: true }
         );
-    console.log(transaction__update_resp)
+      console.log(transaction__update_resp);
       // get plan and user from transaction model
       const transaction_resp = await Transaction_model.findOne({
         _id: transaction_id,
@@ -145,7 +319,7 @@ module.exports.validation = async (req, res) => {
       });
       // id or newly stored purchase_details
       const Purchase_details_id = Purchase_details_model_resp._id;
-      console.log("Purchase_details_id",Purchase_details_id)
+      console.log("Purchase_details_id", Purchase_details_id);
 
       /*
       checking, is reffral code is exist, 
@@ -155,41 +329,46 @@ module.exports.validation = async (req, res) => {
 
       //  geting reffral user id
 
-      
       const Payment_junction_model = {
         user: user_id,
         plan: plan_id,
         transaction: transaction_id,
         is_discount: false,
         purchase_details: Purchase_details_id,
-      };  
-      console.log(user_obj)
+      };
+      console.log(user_obj);
       // updating Payment_junction_model
       if (user_obj.is_referral_exist == true) {
-
         // getting reffral user id if reffral exist
-        console.log(["updating commission balence"])
+        console.log(["updating commission balence"]);
         const referral_user_id = user_obj.referral_by_user;
         // getting reffral user object
-        const reffral_user_obj=await UserModel.findById(referral_user_id);
+        const reffral_user_obj = await UserModel.findById(referral_user_id);
         // logic for balenc update
         // get old balence, add 50%  commisiion then add then update it
-        console.log(reffral_user_obj)
-        const prev_commission_balance=reffral_user_obj.commission_balance
-        console.log(prev_commission_balance)
+        console.log(reffral_user_obj);
+        const prev_commission_balance = reffral_user_obj.commission_balance;
+        console.log(prev_commission_balance);
         // note- only half commission will be added instant and half will be add after 7 days
         // for 7 days, it will be updated using cron jobs
-        const caluculated_total_commision=payment_calculations_data.commision_amount_after_TDS;
-        const half_commission_value=Math.round(caluculated_total_commision/2)
-        const new_half_commission_balence=Number(prev_commission_balance)+Number(half_commission_value);
+        const caluculated_total_commision =
+          payment_calculations_data.commision_amount_after_TDS;
+        const half_commission_value = Math.round(
+          caluculated_total_commision / 2
+        );
+        const new_half_commission_balence =
+          Number(prev_commission_balance) + Number(half_commission_value);
 
-        const reffral_user_update_resp=await UserModel.findByIdAndUpdate({_id:referral_user_id},{
-          commission_balance:new_half_commission_balence
-        });
-        const reffral_user_obj2=await UserModel.findById(referral_user_id);
+        const reffral_user_update_resp = await UserModel.findByIdAndUpdate(
+          { _id: referral_user_id },
+          {
+            commission_balance: new_half_commission_balence,
+          }
+        );
+        const reffral_user_obj2 = await UserModel.findById(referral_user_id);
 
-        console.log(reffral_user_obj2)
-        console.log("user_obj.is_referral_exist",user_obj.is_referral_exist)
+        console.log(reffral_user_obj2);
+        console.log("user_obj.is_referral_exist", user_obj.is_referral_exist);
         Payment_junction_model.is_reffral_exist = true;
         Payment_junction_model.reffral_user = referral_user_id;
 
@@ -199,7 +378,8 @@ module.exports.validation = async (req, res) => {
         // add commision and commision model if reffral exist
         const Commision_tranaction_resp = await Commision_tranaction.create({
           is_amount_added: true,
-          commission_amount:payment_calculations_data.commision_amount_after_TDS,
+          commission_amount:
+            payment_calculations_data.commision_amount_after_TDS,
         });
         console.log("Commision_tranaction_resp", Commision_tranaction_resp);
 
@@ -242,4 +422,3 @@ module.exports.validation = async (req, res) => {
     res.status(401).send("error");
   }
 };
-

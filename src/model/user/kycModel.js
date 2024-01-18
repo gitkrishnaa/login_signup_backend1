@@ -17,7 +17,7 @@ const Schema = mongoose.Schema({
      ifsc_code:{required:true,type:String},
     },
    
-});
+},{timestamps: true});
 
 const Model = mongoose.model(model_names_obj.kyc, Schema);
 

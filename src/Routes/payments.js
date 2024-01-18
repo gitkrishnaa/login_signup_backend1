@@ -8,6 +8,7 @@ const route=require('express').Router();
 // commission and payment is releted to payments, it will be in payment route
 route.post("/order",jwt_verify,payments.order),
 route.post("/validation",jwt_verify,payments.validation),
+route.post("/plan_and_payments_calc",jwt_verify,payments.plan_and_payments_calc),
 
 
 module.exports = route;

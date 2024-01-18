@@ -20,13 +20,13 @@ class User {
 }
 module.exports.devloper = async (req, res) => {
 
-
-
-
-
-
-
   
+
+
+
+
+
+
   res.send("ok");
 };
 module.exports.signup = async (req, res) => {
@@ -169,6 +169,7 @@ module.exports.login = async (req, res) => {
   }
 };
 module.exports.user_details = async (req, res) => {
+  console.log("user_details")
   try {
     const user = req.user;
     // console.log(user,"data")

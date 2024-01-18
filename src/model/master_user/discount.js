@@ -9,6 +9,6 @@ discount_msg:{type:String,required:true},//that can show to user
 
 //there is two value Number or percentage
 discount_percentage:{type:Number,required:true}
-})
+},{timestamps: true})
 const model = mongoose.model(model_names_obj.discount,schema );
 module.exports = model;

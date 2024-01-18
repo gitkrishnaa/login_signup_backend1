@@ -9,7 +9,7 @@ const schema = mongoose.Schema({
     isMaster:{required:true,type:Boolean},
     whoIs:{required:true,type:String},
 
-})
+},{timestamps: true})
 
 const model=mongoose.model(model_names_obj.master_user,schema);
 module.exports=model;

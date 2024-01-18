@@ -18,7 +18,12 @@ module.exports.user_details = async (req, res) => {
     try {
         const user_id=req.body.user_id
         console.log("user_id",user_id)
-        const data=await userModel.findById(user_id).populate(model_names_obj.kyc); 
+        
+        // const data=await userModel.findById(user_id).exec(); 
+        // const data=await userModel.findById(user_id).populate(`${model_names_obj.kyc}`); 
+
+        const data=await userModel.findById(user_id).populate("kyc referral_by_user plan_purchase_details"); 
+
         console.log(data)
         res.status(200).json({msg:"all user accounts",user_detail:data})
     } catch (error) {
