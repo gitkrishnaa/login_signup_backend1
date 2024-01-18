@@ -30,7 +30,7 @@ module.exports.devloper = async (req, res) => {
   res.send("ok");
 };
 module.exports.signup = async (req, res) => {
-  console.log(["#<--signup controller start"]);
+  console.log(["signup controller start"]);
   try {
     console.log(req.body);
     const name = req.body.name;
@@ -123,8 +123,8 @@ module.exports.signup = async (req, res) => {
   }
   console.log(["signup controller end --># "]);
 };
-
 module.exports.login = async (req, res) => {
+  console.log(["user_details"])
   try {
     const password = req.body.password;
     const email = req.body.email;
@@ -169,7 +169,7 @@ module.exports.login = async (req, res) => {
   }
 };
 module.exports.user_details = async (req, res) => {
-  console.log("user_details")
+  console.log(["user_details"])
   try {
     const user = req.user;
     // console.log(user,"data")
@@ -185,7 +185,7 @@ module.exports.user_details = async (req, res) => {
       const plans_model_data_resp = await Plans_model.findById(
         enrolled_plan_id
       );
-      console.log("plans_model_data_resp", plans_model_data_resp);
+      // console.log("plans_model_data_resp", plans_model_data_resp);
       res
         .status(200)
         .json({
