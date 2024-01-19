@@ -116,7 +116,7 @@ const coupon_code_verification=async (coupon_code)=>{
 // for showing plan details and all calculation, it will be used in this controlled, it will be modified also
 // note- this function will decide all the calculation , discount and coupon validation
 // note- by using this we will handle "plan_and_payments_calc" route
-const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon) => {
+const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon,req) => {
   try {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
 
@@ -293,20 +293,11 @@ module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
     const plan_id = req.body.payload.id;
     const is_coupon = req.body.payload.is_coupon;
 
-    const data=await plan_and_payments_and_coupon_code_calc_function(plan_id,is_coupon);
+    const data=await plan_and_payments_and_coupon_code_calc_function(plan_id,is_coupon,req);
     const {status_code,...rest_data}=data
    console.log(data)
    res.status(status_code).json(rest_data)
   
-  
-
-       
-  
-    
-    
-    
-   
-
     // res.status(202).json({msg:"ok"})
   } catch (error) {
     console.log(error);
@@ -315,20 +306,34 @@ module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
 };
 
 module.exports.order = async (req, res) => {
+  console.log(["payment order"])
   // console.log(req.body)
   // console.log(req.user)
   try {
     //  making a object, that will have all necessory data
-    const main_data = {};
     const seleted_plan_id = req.body.seleted_plan_id;
     const user_id = req.user.user_id;
     const user_email = req.user.user_email;
-
+    const is_coupon = req.body.is_coupon;
+    console.log(req.body)
     is_empty_variable(seleted_plan_id, user_id, user_email); //if any argumnet is empty it will throw error
 
-    // getting plan  details
+
+// geting final price that user will have to pay
+const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon);
+const {status_code,...plan_and_price_details}=data
+   if(status_code==403){
+    res.status(403).json({plan_and_price_details});
+    return;
+   }
+   const price_details=plan_and_price_details.price_details;
+
+
+
+
+    // // getting plan  details
     const plan_details = await Plan_model.findById(seleted_plan_id);
-    plan_price = plan_details.price;
+    const final_plan_price = price_details.final_plan_price;
     //get user details
     const user_resp = await UserModel.findById(user_id);
     console.log(user_resp);
@@ -349,7 +354,7 @@ module.exports.order = async (req, res) => {
     });
 
     const options = {
-      amount: Number(plan_price) * 100, // amount in the smallest currency unit
+      amount: Number(final_plan_price) * 100, // amount in the smallest currency unit
       currency: "INR",
       receipt: transaction_id,
     };
@@ -396,7 +401,7 @@ module.exports.validation = async (req, res) => {
       const transaction__update_resp =
         await Transaction_model.findByIdAndUpdate(
           { _id: transaction_id },
-          { status_msg: "sucessful", status: true }
+          { status_msg: "successful", status: true }
         );
       console.log(transaction__update_resp);
       // get plan and user from transaction model
