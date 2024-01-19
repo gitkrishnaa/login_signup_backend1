@@ -119,10 +119,10 @@ const coupon_code_verification=async (coupon_code)=>{
 const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon,req) => {
   try {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
-
-
+    console.log(["plan_and_payments_and_coupon_code_calc_function()"])
+    console.log(plan_id,is_coupon,req.body)
     const plan_details = await Plan_model.findById(plan_id);
-    // console.log(plan_details)
+    console.log(plan_details)
     const {
       meeting_link,
       commision_percentage,
@@ -153,7 +153,7 @@ const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon
 // if coupon code
     if (is_coupon == true) {
       console.log("coupon code is exist")
-      const coupon_code = req.body.payload.coupon_code;
+      const coupon_code = req.body.coupon_code;
        
      const coupon_code_status=await coupon_code_verification(coupon_code);
      if(coupon_code_status.is_valid==true){
@@ -290,12 +290,13 @@ module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
 
     
-    const plan_id = req.body.payload.id;
-    const is_coupon = req.body.payload.is_coupon;
-
+    const plan_id = req.body.id;
+    const is_coupon = req.body.is_coupon;
+    console.log(req.body)
     const data=await plan_and_payments_and_coupon_code_calc_function(plan_id,is_coupon,req);
     const {status_code,...rest_data}=data
-   console.log(data)
+    // console.log(data,"data")
+  //  console.log(data)
    res.status(status_code).json(rest_data)
   
     // res.status(202).json({msg:"ok"})
@@ -315,12 +316,13 @@ module.exports.order = async (req, res) => {
     const user_id = req.user.user_id;
     const user_email = req.user.user_email;
     const is_coupon = req.body.is_coupon;
-    console.log(req.body)
+    // console.log(req.body)
     is_empty_variable(seleted_plan_id, user_id, user_email); //if any argumnet is empty it will throw error
 
 
 // geting final price that user will have to pay
-const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon);
+const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon,req);
+console.log(req.body,"console.log")
 const {status_code,...plan_and_price_details}=data
    if(status_code==403){
     res.status(403).json({plan_and_price_details});
@@ -379,9 +381,15 @@ const {status_code,...plan_and_price_details}=data
   }
 };
 module.exports.validation = async (req, res) => {
+  console.log(["payment validation"])
   // this is to validate that orderid and payment_id is not harmed or malformed or hacked
   // for help- https://github.com/razorpay/razorpay-php/issues/156
   try {
+    console.log(req.bodt)
+    const plan_id = req.body.id;
+    const is_coupon = req.body.is_coupon;
+    const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon,req);
+
     console.log("validation");
     console.log(req.body);
     is_empty(req.body.payload);
