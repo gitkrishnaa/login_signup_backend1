@@ -11,14 +11,15 @@ const { model_names_obj } = require("../Model_obj");
 const schema=mongoose.Schema({
 user:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 plan:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.plans},
-is_reffral_exist:{required:true,type:Boolean,required:true},
+is_reffral_exist:{required:true,type:Boolean},
 reffral_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 transaction:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.transactions},
 // plan_contents:{type:mongoose.Types.ObjectId,ref:model_names_obj.plan_contents},
-is_discount:{required:true,type:Boolean},
-discount:{type:mongoose.Types.ObjectId,ref:model_names_obj.discount},//discount id 
-commision_payments:{type:mongoose.Types.ObjectId,ref:model_names_obj.commision_payments},
+
+commision_payments_same_day:{type:mongoose.Types.ObjectId,ref:model_names_obj.commission_payments},
+commision_payments_after_7day:{type:mongoose.Types.ObjectId,ref:model_names_obj.commission_payments},
 purchase_details:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.purchase_details},
+
 },{ timestamps: true })
 const model = mongoose.model(model_names_obj.payment_details,schema);
 module.exports = model;

@@ -144,8 +144,8 @@ const payment_calculations = (
     commission_amount - TDS_amount
   );
   const obj = {
-    amount: final_amount,
-    amount_without_gst,
+    final_plan_price: final_amount,
+    plan_price_without_gst:amount_without_gst,
     gst_percentage,
     gst_amount,
     razorpay_charges_amount,

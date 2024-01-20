@@ -10,7 +10,7 @@ module.exports.model_names_obj={
     plans:"plans",
     plan_contents:"plan_contents",
     // payments releted
-    commision_payments:"commision_transaction",//it records all commission that is added to reffral user account
+    commission_payments:"commission_transaction",//it records all commission that is added to reffral user account
     
     payment_details:"payment_details",
     transactions:"transactions",

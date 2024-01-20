@@ -9,15 +9,33 @@ const { model_names_obj } = require("../Model_obj");
 
 
 const schema=mongoose.Schema({
-    amount_without_gst:{required:true,type:Number},
+    original_plan_price:{required:true,type:Number},
+    final_plan_price:{required:true,type:Number},//it means price after all discount
     gst_percentage:{required:true,type:Number},
     TDS_percentage:{required:true,type:Number},
     payment_platform_charges_percentage:{required:true,type:Number},
+
     commission_sales_value_csv:{required:true,type:Number},
-    reffral_commission_percentage:{required:true,type:Number},
+    
+    // // if referral 
+    // is_referral:{required:true,type:Boolean},
+    // reffral_commission_percentage:{type:Number},
+
+    // is discount
     is_discount:{required:true,type:Boolean},
     discount_percentage:{type:Number},
-    all_calculations:{type:Object}
+
+    // is discount
+    is_coupon:{required:true,type:Boolean},
+    coupon_details:{type:Object},
+
+    // discount by admin when manual cash purchase
+    is_admin_discount:{required:true,type:Boolean},
+    discount_in_amount:{type:Number},
+
+    // calculations
+    discount_calc_details:{type:Object,required:true},
+    all_calculations:{type:Object,required:true}
 },{ timestamps: true })
 const model = mongoose.model(model_names_obj.purchase_details,schema );
 module.exports = model;

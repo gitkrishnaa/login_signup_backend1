@@ -11,14 +11,32 @@ payments_id- all detais, like junction
 paid- if amount added in reffral user then update it to true
 */
 
+// logic
+/*
+each commission have two entry
+
+
+
+
+*/
+
+
 const userSchema = mongoose.Schema({
 payments_junction:{type:mongoose.Types.ObjectId,ref:model_names_obj.payment_details},
-is_amount_added:{required:true,type:Boolean},
-// half commission will be added instant and half will be added after 7 days using cron jobs
+commission_receiver_user:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 commission_amount:{required:true,type:Number},
+// on which date, user will recive or admin will send  money to user
+date_of_payment:{required:true,type:Date},
+amount_sent_status:{required:true,type:Boolean},
+msg:{type:String},
+note:{type:String},
+// for tranction details
+transfer_details:{type:String},
+// half commission will be added instant and half will be added after 7 days using cron jobs
+
 },{ timestamps: true });
 
-const userModel = mongoose.model(model_names_obj.commision_payments, userSchema);
+const userModel = mongoose.model(model_names_obj.commission_payments, userSchema);
 
 module.exports = userModel;
 
