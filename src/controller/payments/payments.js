@@ -12,7 +12,7 @@ const Commision_tranaction = require("../../model/payments/commission_transactio
 const Coupon_model = require("../../model/master_user/coupon");
 
 // payment junction - it used as junction for all model id which is releted to plan/course purchase
-const Payment_junction = require("../../model/payments/payment_details_junction");
+const Payment_details_junction = require("../../model/payments/payment_details_junction");
 const { payment_calculations, plan_payment_calculation } = require("../../data/data");
 const userModel = require("../../model/payments/commission_transaction");
 
@@ -116,10 +116,12 @@ const coupon_code_verification=async (coupon_code)=>{
 // for showing plan details and all calculation, it will be used in this controlled, it will be modified also
 // note- this function will decide all the calculation , discount and coupon validation
 // note- by using this we will handle "plan_and_payments_calc" route
-const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon,coupon_code,req) => {
+const plan_and_payments_discount_and_coupon_code_discount_calc_function = async ({plan_id,is_coupon,coupon_code,user_id}) => {
+ 
+
   try {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
-    console.log(["plan_and_payments_and_coupon_code_calc_function()"])
+    console.log(["plan_and_payments_discount_and_coupon_code_discount_calc_function()"])
     console.log(plan_id,is_coupon)
     const plan_details = await Plan_model.findById(plan_id);
     console.log(plan_details)
@@ -139,7 +141,7 @@ const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon
       return {status_code:403,status:false,msg:"plan is deactivated"}
     }
 
-    // price cal
+ // price cal
     const price_data_details = {
       is_discount,
       is_coupon: false,
@@ -147,8 +149,29 @@ const plan_and_payments_and_coupon_code_calc_function = async (plan_id,is_coupon
       coupon_discount_percentage: null,
       price,
       gst,
+      is_upgrading:false,
+      previous_purchased_plan_csv:null,
     };
-    const price_detais = plan_payment_calculation(price_data_details);
+
+    // updating price details if user is upgrading
+    const user_resp=await UserModel.findById(user_id)
+    if(user_resp.is_enrolled==true){
+    // finding previous_purchase_plan_csv
+    const payment_details_populated=await Payment_details_junction.findById(user_resp.payments_details_junction).populate("purchase_details")
+    const commission_sales_value_csv=payment_details_populated.purchase_details.commission_sales_value_csv;
+    // console.log(commission_sales_value_csv)
+    price_data_details.is_upgrading=true,
+    price_data_details.previous_purchased_plan_csv=commission_sales_value_csv
+    }
+
+    console.log(price_data_details,"price_data_details")
+
+
+
+
+   
+
+    const price_detais = plan_payment_calculation(price_data_details);//where discount is also calculated
 
 // if coupon code
     if (is_coupon == true) {
@@ -289,14 +312,14 @@ module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
   try {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
 
-    
+    const user_id = req.user.user_id;
     const plan_id = req.body.id;
     const is_coupon = req.body.is_coupon;
     const coupon_code=req.body.coupon_code
     console.log(req.body)
-    const data=await plan_and_payments_and_coupon_code_calc_function(plan_id,is_coupon,coupon_code);
+    const data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({plan_id,is_coupon,coupon_code,user_id});
     const {status_code,...rest_data}=data
-    // console.log(data,"data")
+    console.log(data,"data")
   //  console.log(data)
    res.status(status_code).json(rest_data)
   
@@ -322,10 +345,25 @@ module.exports.order = async (req, res) => {
     is_empty_variable(seleted_plan_id, user_id, user_email); //if any argumnet is empty it will throw error
 
 
+
+
+
+
+
+  const user_resp=await UserModel.findById(user_id)
 // geting final price that user will have to pay
-const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon,coupon_code);
-console.log(req.body,"console.log")
-const {status_code,...plan_and_price_details}=data;
+  // geting final prices and plan details,it will also work if user is upgrading
+   const data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({
+      plan_id:seleted_plan_id,
+      is_coupon:is_coupon,
+      coupon_code:coupon_code,
+      user_id:user_id,
+    });
+  
+
+
+   console.log(req.body,"console.log")
+   const {status_code,...plan_and_price_details}=data;
    if(status_code==403){
     res.status(403).json({plan_and_price_details});
     return;
@@ -339,8 +377,8 @@ const {status_code,...plan_and_price_details}=data;
     const plan_details = await Plan_model.findById(seleted_plan_id);
     
     //get user details
-    const user_resp = await UserModel.findById(user_id);
-    console.log(user_resp);
+ 
+    // console.log(user_resp);
     //create tranction documnet in db
     const transaction_resp = await Transaction_model.create({
       user: user_id,
@@ -367,9 +405,9 @@ const {status_code,...plan_and_price_details}=data;
     };
     const resp = await instance.orders.create(options);
     // console.log(resp, "resp");
-    console.log(plan_details);
-    console.log(transaction_resp);
-    console.log(options);
+    // console.log(plan_details);
+    // console.log(transaction_resp);
+    // console.log(options);
     res.status(200).json({
       order_id: resp.id,
       options: options,
@@ -394,7 +432,6 @@ module.exports.validation = async (req, res) => {
   try {
     // getting details from clients
     console_key_details.req_body=req.body
-    // console.log()
     const seleted_plan_id = req.body.seleted_plan_id;
     const is_coupon = req.body.is_coupon;
     const coupon_code=req.body.coupon_code;
@@ -483,10 +520,6 @@ module.exports.validation = async (req, res) => {
        referral_details.referral_user_id=referral_by_user_id
         }
         
-        
-
-
-
         console_key_details.if_true_then_reffral_details={
           is_referral_user_enrolled,
           reffral_user_details,
@@ -498,7 +531,12 @@ module.exports.validation = async (req, res) => {
 
       //
       // geting final price that user have paid
-      const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon,coupon_code);
+      data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({
+        plan_id:seleted_plan_id,
+        is_coupon:is_coupon,
+        coupon_code:coupon_code,
+        user_id:user_id,
+      });
       const {status_code,...plan_and_price_details}=data;
       const price_details=plan_and_price_details.price_details;
       const final_plan_price = price_details.final_plan_price;
@@ -512,7 +550,7 @@ module.exports.validation = async (req, res) => {
         TDS_percentage
       );
 
-
+    //  console.log(plan_and_price_details,"plan_and_price_details")
       // inserting purchase details calculation in db
       const Purchase_details_model_obj= {
         original_plan_price:plans_price,
@@ -528,7 +566,8 @@ module.exports.validation = async (req, res) => {
         discount_calc_details:price_details,
         all_calculations: payment_calculations_data,
         is_admin_discount:false,
-        is_referral_commission_eligible:referral_details.is_commission_eligible
+        is_referral_commission_eligible:referral_details.is_commission_eligible,
+        is_upgraded:price_details.is_upgrading,
       }
       //  if coupon is applied then add coupon details object in purchase model
       if(coupon_code!==null && is_coupon==true){
@@ -600,7 +639,7 @@ module.exports.validation = async (req, res) => {
       }
 
 
-      const Payment_junction_resp = await Payment_junction.create({
+      const Payment_junction_resp = await Payment_details_junction.create({
         ...Payment_junction_model,
         // commision_payments:it will added after commission document created,
       });
@@ -654,260 +693,3 @@ module.exports.validation = async (req, res) => {
 };
 
 // manual/cash purchase done by admin only
-module.exports.manual_course_enrollment = async (req, res) => {
-  console.log(["payment validation"])
-  // this is to validate that orderid and payment_id is not harmed or malformed or hacked
-  // for help- https://github.com/razorpay/razorpay-php/issues/156
-  try {
-    // getting details from clients
-    console.log(req.body)
-    const seleted_plan_id = req.body.seleted_plan_id;
-    const is_coupon = req.body.is_coupon;
-    const coupon_code=req.body.coupon_code;
-
-
-    // checking is any variable is empty
-    // is_empty(req.body.payload);
-
-    
-
-    // if not any variable is empty, then geting transction details
-    const razorpay_order_id = req.body.payload.razorpay_order_id;
-    const razorpay_payment_id = req.body.payload.razorpay_payment_id;
-    const razorpay_signature = req.body.payload.razorpay_signature;
-    const transaction_id = req.body.transaction_id;
-    
-
-
-    // validating tranaction details
-    var generatedSignature = crypto
-      .createHmac("sha256", razorpay_key_secret)
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest("hex");
-
-    var isSignatureValid = generatedSignature == razorpay_signature; //boolean true/false
-
-    console.log([isSignatureValid,"isSignatureValid"])
-
-    // if validation is ok then it runs, to store and asssign couse and data in database
-    if (isSignatureValid==true) {
-      // updating tranaction db model
-      // console.log(transaction_id);
-      const transaction__update_resp =
-        await Transaction_model.create(
-          { status_msg: "successful",
-            status: true,
-            order_id:null,
-            payment_id:null,
-            payment_signature:null,
-          }
-        );
-      // console.log(transaction__update_resp);
-
-
-      // get plan details and user details from transaction model
-      const transaction_resp = await Transaction_model.findOne({
-        _id: transaction_id,
-      }).populate("plan user");
-      console.log(transaction_resp)
-      // assigning values that recived from db
-      const plan_obj = transaction_resp.plan;
-      const user_obj = transaction_resp.user;
-      const user_id = transaction_resp.user._id;
-      const plan_id = plan_obj._id;
-      const plans_price = plan_obj.price;
-      const gst_percentage = plan_obj.gst;
-      const user_commision = plan_obj.commision_percentage;
-      const TDS_percentage = 5;
-
-     
-
-
-      //
-      // geting final price that user will have to pay
-      const data=await plan_and_payments_and_coupon_code_calc_function(seleted_plan_id,is_coupon,coupon_code);
-      const {status_code,...plan_and_price_details}=data;
-      const price_details=plan_and_price_details.price_details;
-      const final_plan_price = price_details.final_plan_price;
-
-      
-       //important calculation like gst,tds, commission etc
-      const payment_calculations_data = payment_calculations(
-        final_plan_price,
-        gst_percentage,
-        user_commision,
-        TDS_percentage
-      );
-
-
-      // inserting purchase details calculation in db
-      const Purchase_details_model_obj= {
-        original_plan_price:plans_price,
-        final_plan_price: payment_calculations_data.final_plan_price,
-        gst_percentage: payment_calculations_data.gst_percentage,
-        TDS_percentage: payment_calculations_data.TDS_percentage,
-        payment_platform_charges_percentage:payment_calculations_data.razorpay_charges_percentage,
-        commission_sales_value_csv:payment_calculations_data.commission_sales_value_csv,
-        reffral_commission_percentage:payment_calculations_data.commision_percentage,
-        reffral_commission_amount: payment_calculations_data.commission_amount,
-        is_discount: price_details.is_discount,
-        is_coupon:price_details.is_coupon,
-        discount_calc_details:price_details,
-        all_calculations: payment_calculations_data,
-        is_admin_discount:false,
-
-      }
-      //  if coupon is applied then add coupon details object in purchase model
-      if(coupon_code!==null && is_coupon==true){
-        const coupon_detais =await Coupon_model.findOne({ coupon_code: coupon_code });
-        Purchase_details_model_obj.coupon_details=coupon_detais
-      }
-
-      const Purchase_details_model_resp = await Purchase_details_model.create(Purchase_details_model_obj);
-      // id of newly stored purchase_details
-      const Purchase_details_id = Purchase_details_model_resp._id;
-      console.log("Purchase_details_id", Purchase_details_id);
-
-      /*
-      note-
-      checking, is reffral code is exist, 
-      if not exist not add or do any thing
-      if exist, then get that reffral use , creare a commmission and update the commission balence
-      */
-
-      //  geting reffral user id
-      const Payment_junction_model = {
-        user: user_id,
-        plan: plan_id,
-        transaction: transaction_id,
-        purchase_details: Purchase_details_id,
-      };
-      // console.log(user_obj);
-
-
-      // updating Payment_junction_model
-
-      // getting reffral user id if reffral exist
-      if (user_obj.is_referral_exist == true) {
-        
-        console.log(["updating commission balence"]);
-        const referral_user_id = user_obj.referral_by_user;
-        // getting reffral user object
-        // const reffral_user_obj = await UserModel.findById(referral_user_id);
-        // logic for balenc update
-        // get old balence, add 50%  commisiion then add then update it
-        // console.log(reffral_user_obj);
-
-
-        /*
-        this is update user balence, now its no need
-
-        const prev_commission_balance = reffral_user_obj.commission_balance;
-        console.log(prev_commission_balance);
-
-        // note- only half commission will be added instant and half will be add after 7 days
-        // for 7 days, it will be updated using cron jobs
-        const caluculated_total_commision =
-          payment_calculations_data.commision_amount_after_TDS;
-        const half_commission_value = Math.round(
-          caluculated_total_commision / 2
-        );
-        const new_half_commission_balence =
-          Number(prev_commission_balance) + Number(half_commission_value);
-
-        const reffral_user_update_resp = await UserModel.findByIdAndUpdate(
-          { _id: referral_user_id },
-          {
-            commission_balance: new_half_commission_balence,
-          }
-        );
-
-*/
-
-
-        console.log("user_obj.is_referral_exist", user_obj.is_referral_exist);
-        Payment_junction_model.is_reffral_exist = true;
-        Payment_junction_model.reffral_user = referral_user_id;
-
-    // logic for adding commission
-    // so there will be two entry , first will be same date and 2nd will be after 7 days
-    let today = new Date();
-    let date_after_7day = new Date();
-    date_after_7day.setDate(today.getDate()+7);
-    const commission_model_obj_same_date={
-      commission_receiver_user:referral_user_id,
-      commission_amount:payment_calculations_data.commision_amount_after_TDS,
-      date_of_payment:today,
-      amount_sent_status:false,
-    }
-    const commission_model_obj_7day_after_date={
-      commission_receiver_user:referral_user_id,
-      commission_amount:payment_calculations_data.commision_amount_after_TDS,
-      date_of_payment:date_after_7day,
-      amount_sent_status:false,
-    }
-    const Commision_tranaction_resp1 = await Commision_tranaction.create(commission_model_obj_same_date);
-    const Commision_tranaction_resp2 = await Commision_tranaction.create(commission_model_obj_7day_after_date);
-
-
-        // updating id of recently added Commision_tranaction_resp in Payment_junction_model
-          Payment_junction_model.commision_payments_same_day=Commision_tranaction_resp1._id
-          Payment_junction_model.commision_payments_after_7day=Commision_tranaction_resp2.id
-      } else {
-        Payment_junction_model.is_reffral_exist = false;
-      }
-      console.log(["sucessfully added every thing1"])
-      const Payment_junction_resp = await Payment_junction.create({
-        ...Payment_junction_model,
-        // commision_payments:it will added after commission document created,
-      });
-      console.log(Payment_junction_resp)
-
-const Payment_junction_id = Payment_junction_resp._id;
-      //now updating user model of plan/course purchase,is_enrolled and
-      // updating balance
-      // console.log(user_obj, "user_obj,user_obj");
-      const userModel_update_resp = await UserModel.findByIdAndUpdate(
-        { _id: user_id },
-        {
-          payments_details_junction: Payment_junction_id,
-          enrolled_plan:plan_id,
-          is_enrolled: true,
-        }
-      );
-
-      // console.log(payment_calculations_data);
-      // console.log(Purchase_details_model_resp._id);
-      // console.log(Payment_junction_resp);
-      // console.log(userModel_update_resp);
-      console.log(["sucessfully added every thing2"])
-
-      console.log(["sucessfully added every thing"])
-      // console.log({key_info:{
-      //   Payment_junction_id,
-      //   user_obj_id:user_obj      ._id,
-      //   transaction_id,
-      //   Purchase_details_id
-
-      // }})
-      res.status(200).json({ msg: "successfully purchased" });
-    } else {
-      const transaction__update_resp =
-      await Transaction_model.findByIdAndUpdate(
-        { _id: transaction_id },
-        { status_msg: "payment paid, but not validated, please contact to customer care",
-          status: true,
-          order_id:razorpay_order_id,
-          payment_id:razorpay_payment_id,
-          payment_signature:razorpay_signature,
-        }
-      );
-      res.status(400).json({
-        msg: "purchase is not successful, please contact to customercare",
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(401).send("error");
-  }
-};

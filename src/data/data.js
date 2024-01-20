@@ -163,6 +163,7 @@ const payment_calculations = (
 
 // for plan price calculation where couponcode, discont, gst,it will be show to user when user puchase
 const plan_payment_calculation = (data) => {
+  console.log(["plan_payment_calculation"])
   // data:{
   //   is_discount,
   //   is_coupon,
@@ -170,18 +171,41 @@ const plan_payment_calculation = (data) => {
   //   coupon_discount_percentage,
   //   plan_price
   //   gst,
+  //is_plan_upgrading:boolean
+  //previous_purchased_plan_csv:number->it will get from last purchased, in payment_details_model->in purchase_details_model->in csv_value
   // }
 
-  const orignal_plan_price = data.price;
-  const is_discount = data.is_discount;
-  const is_coupon = data.is_coupon;
-  let final_plan_price = Number(orignal_plan_price);
+// if user is upgrading then it will use
+/**logic
+ * upgrading-when user is enrolled already and purchse higher price course
+ * so if user is upgrading
+ * is_coupon and is_discount get overrided to false
+ * and final price=orignal price-previous_purchased_plan_csv
+ * 
+ * 
+ */
+
+  // csv-common_sales_value, mean after gst, plantform charges cut which is 20 (18gst+2 razorpay)
+  const is_upgrading=data.is_upgrading;
+  const previous_purchased_plan_csv= Number(data.previous_purchased_plan_csv);
+  const orignal_plan_price = Number(data.price);
+  let is_discount = data.is_discount;
+  let is_coupon = data.is_coupon;
+  let final_plan_price =orignal_plan_price;
   const gst = data.gst;
 
   let discount_percentage = null;
   let coupon_discount_percentage = null;
   let discount_value = null;
   let coupon_discount_value = null;
+
+// if user is upgrading means that no coupon,no discount
+  if(is_upgrading==true){
+    is_discount=false;
+    is_coupon=false;
+    final_plan_price=final_plan_price-previous_purchased_plan_csv
+    console.log(previous_purchased_plan_csv,data,"previous_purchased_plan_csv")
+  }
 
   if (is_discount == true) {
     discount_percentage = data.discount_percentage;
@@ -194,6 +218,11 @@ const plan_payment_calculation = (data) => {
       Number(final_plan_price * coupon_discount_percentage) / 100;
     final_plan_price = final_plan_price - coupon_discount_value;
   }
+  
+
+
+
+
   const gst_value = Number(final_plan_price * gst) / 100;
   const plan_price_without_gst = final_plan_price - gst_value;
   return {
@@ -206,8 +235,10 @@ const plan_payment_calculation = (data) => {
     discount_value:number_decimal_format(discount_value),
     coupon_discount_percentage:number_decimal_format(coupon_discount_percentage),
     coupon_discount_value:number_decimal_format(coupon_discount_value),
-    is_discount,
-    is_coupon,
+    is_discount:is_discount,
+    is_coupon:is_coupon,
+    is_upgrading:is_upgrading,
+    previous_purchased_plan_csv:previous_purchased_plan_csv||null,
   };
 };
 

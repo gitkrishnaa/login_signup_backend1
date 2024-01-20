@@ -1,0 +1,2 @@
+is_upgrading-means if user is enrolled and now buy/purchaseing higher course, discount and coupon will not applied
+previous_purchase_plan_csv-since useu is already purchased, csv of previous purchased will get minus from final price

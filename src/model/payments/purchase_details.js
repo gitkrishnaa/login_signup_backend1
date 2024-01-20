@@ -33,9 +33,17 @@ const schema=mongoose.Schema({
     is_admin_discount:{required:true,type:Boolean},
     admin_discount_percentage:{type:Number},
 
+   //is upgraded ,mean- if user already purchased any plan and now want to buy another higher plan(user not able to buy lower)
+   is_upgraded:{required:true,type:Boolean},
+   previous_purchased_plan_csv:{type:Number},
+ 
+
     // calculations
     discount_calc_details:{type:Object,required:true},
-    all_calculations:{type:Object,required:true}
+    all_calculations:{type:Object,required:true},
+
+    // developer_msg
+     developer_msg:{type:String}
 },{ timestamps: true })
 const model = mongoose.model(model_names_obj.purchase_details,schema );
 module.exports = model;
