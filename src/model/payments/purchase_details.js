@@ -14,13 +14,13 @@ const schema=mongoose.Schema({
     gst_percentage:{required:true,type:Number},
     TDS_percentage:{required:true,type:Number},
     payment_platform_charges_percentage:{required:true,type:Number},
-
+    
     commission_sales_value_csv:{required:true,type:Number},
     
     // // if referral 
     // is_referral:{required:true,type:Boolean},
     // reffral_commission_percentage:{type:Number},
-
+    is_referral_commission_eligible:{required:true,type:Boolean},
     // is discount
     is_discount:{required:true,type:Boolean},
     discount_percentage:{type:Number},
@@ -31,7 +31,7 @@ const schema=mongoose.Schema({
 
     // discount by admin when manual cash purchase
     is_admin_discount:{required:true,type:Boolean},
-    discount_in_amount:{type:Number},
+    admin_discount_percentage:{type:Number},
 
     // calculations
     discount_calc_details:{type:Object,required:true},

@@ -174,14 +174,15 @@ module.exports.user_details = async (req, res) => {
     const user = req.user;
     // console.log(user,"data")
     const user_resp = await UserModel.findById(user.user_id).populate(
-      "kyc plan_purchase_details"
+      "kyc payments_details_junction"
     );
     const { name, email, user_referral_code } = user_resp;
     const { password, ...rest } = user_resp._doc;
 
     // getting enrolled plan details
     if (user_resp.is_enrolled == true) {
-      const enrolled_plan_id = user_resp.plan_purchase_details.plan;
+      console.log(user_resp)
+      const enrolled_plan_id = user_resp.payments_details_junction.plan;
       const plans_model_data_resp = await Plans_model.findById(
         enrolled_plan_id
       );

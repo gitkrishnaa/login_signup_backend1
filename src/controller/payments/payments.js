@@ -389,9 +389,12 @@ module.exports.validation = async (req, res) => {
   console.log(["payment validation"])
   // this is to validate that orderid and payment_id is not harmed or malformed or hacked
   // for help- https://github.com/razorpay/razorpay-php/issues/156
+
+  const console_key_details={}
   try {
     // getting details from clients
-    console.log(req.body)
+    console_key_details.req_body=req.body
+    // console.log()
     const seleted_plan_id = req.body.seleted_plan_id;
     const is_coupon = req.body.is_coupon;
     const coupon_code=req.body.coupon_code;
@@ -443,7 +446,8 @@ module.exports.validation = async (req, res) => {
       const transaction_resp = await Transaction_model.findOne({
         _id: transaction_id,
       }).populate("plan user");
-      console.log(transaction_resp)
+      // console.log(transaction_resp)
+      console_key_details.transaction_resp=transaction_resp
       // assigning values that recived from db
       const plan_obj = transaction_resp.plan;
       const user_obj = transaction_resp.user;
@@ -458,17 +462,39 @@ module.exports.validation = async (req, res) => {
       const TDS_percentage = 5;
       const is_referral_exist=user_obj.is_referral_exist
       const referral_details={
+        is_commission_eligible:false,//if referral user who is also enrolled then user will recieve commission
         is_referral_exist:is_referral_exist,
-        user_commision:0,
-        referral_user_enrolled_plan_id:null,
-        commission_in_the_plan:null
+        commission_in_the_enrolled_plan:0,
+        referral_user_id:null,
       }
-      // if referral exist then commission is calculated else not commission will be 0
+   
+      //# if referral exist then commission is calculated else not commission will be 0
       if(is_referral_exist==true){
-
-      }
+        const referral_by_user_id=user_obj.referral_by_user;
+        const reffral_user_details = await UserModel.findById(referral_by_user_id).populate("enrolled_plan")
+        const is_referral_user_enrolled=reffral_user_details.is_enrolled;
       
+        if(is_referral_user_enrolled==true){
+       const enrolled_plan_commission_percentage=reffral_user_details.enrolled_plan.commision_percentage;
+          
+       referral_details.is_commission_eligible=true
+       referral_details.is_referral_exist=true
+       referral_details.commission_in_the_enrolled_plan=enrolled_plan_commission_percentage
+       referral_details.referral_user_id=referral_by_user_id
+        }
+        
+        
 
+
+
+        console_key_details.if_true_then_reffral_details={
+          is_referral_user_enrolled,
+          reffral_user_details,
+          user_id
+          // is_referral_user_enrolled
+        }
+      }
+    
 
       //
       // geting final price that user have paid
@@ -482,7 +508,7 @@ module.exports.validation = async (req, res) => {
       const payment_calculations_data = payment_calculations(
         final_plan_price,
         gst_percentage,
-        user_commision,
+        referral_details.commission_in_the_enrolled_plan,
         TDS_percentage
       );
 
@@ -502,6 +528,7 @@ module.exports.validation = async (req, res) => {
         discount_calc_details:price_details,
         all_calculations: payment_calculations_data,
         is_admin_discount:false,
+        is_referral_commission_eligible:referral_details.is_commission_eligible
       }
       //  if coupon is applied then add coupon details object in purchase model
       if(coupon_code!==null && is_coupon==true){
@@ -512,7 +539,7 @@ module.exports.validation = async (req, res) => {
       const Purchase_details_model_resp = await Purchase_details_model.create(Purchase_details_model_obj);
       // id of newly stored purchase_details
       const Purchase_details_id = Purchase_details_model_resp._id;
-      console.log("Purchase_details_id", Purchase_details_id);
+  
 
       /*
       note-
@@ -534,13 +561,13 @@ module.exports.validation = async (req, res) => {
       // updating Payment_junction_model
 
       // getting reffral user id if reffral exist
-    if (user_obj.is_referral_exist == true) {
+    if (referral_details.is_referral_exist == true) {
         
         console.log(["updating commission balence"]);
-        const referral_user_id = user_obj.referral_by_user;
+        const referral_user_id =referral_details.referral_user_id;
 
-        console.log("user_obj.is_referral_exist", user_obj.is_referral_exist);
-        Payment_junction_model.is_reffral_exist = true;
+        // console.log("user_obj.is_referral_exist", user_obj.is_referral_exist);
+        Payment_junction_model.is_reffral_exist =referral_details.is_referral_exist;
         Payment_junction_model.reffral_user = referral_user_id;
     
     // logic for adding commission
@@ -569,13 +596,9 @@ module.exports.validation = async (req, res) => {
     Payment_junction_model.commision_payments_same_day=Commision_tranaction_resp1._id
     Payment_junction_model.commision_payments_after_7day=Commision_tranaction_resp2.id
     } else {
-
-
-
-
-
         Payment_junction_model.is_reffral_exist = false;
       }
+
 
       const Payment_junction_resp = await Payment_junction.create({
         ...Payment_junction_model,
@@ -585,27 +608,29 @@ module.exports.validation = async (req, res) => {
       const Payment_junction_id = Payment_junction_resp._id;
       //now updating user model of plan/course purchase,is_enrolled and
       // updating balance
-      console.log(user_obj, "user_obj,user_obj");
+      // console.log(user_obj, "user_obj,user_obj");
+  
+      //now updating user model of plan/course purchase,is_enrolled and
+      // updating balance
+      // console.log(user_obj, "user_obj,user_obj");
       const userModel_update_resp = await UserModel.findByIdAndUpdate(
         { _id: user_id },
         {
-          plan_purchase_details: Payment_junction_id,
+          payments_details_junction: Payment_junction_id,
+          enrolled_plan:plan_id,
           is_enrolled: true,
         }
       );
 
-      // console.log(payment_calculations_data);
-      // console.log(Purchase_details_model_resp._id);
-      // console.log(Payment_junction_resp);
-      // console.log(userModel_update_resp);
+  
+  
       console.log(["sucessfully added every thing"])
-      console.log({key_info:{
+      console_key_details.key_details={
         Payment_junction_id,
         user_obj_id:user_obj._id,
         transaction_id,
-        Purchase_details_id
-
-      }})
+        Purchase_details_id}
+      console.log(console_key_details)
       res.status(200).json({ msg: "successfully purchased" });
     } else {
       const transaction__update_resp =
@@ -831,20 +856,22 @@ module.exports.manual_course_enrollment = async (req, res) => {
       } else {
         Payment_junction_model.is_reffral_exist = false;
       }
-
+      console.log(["sucessfully added every thing1"])
       const Payment_junction_resp = await Payment_junction.create({
         ...Payment_junction_model,
         // commision_payments:it will added after commission document created,
       });
+      console.log(Payment_junction_resp)
 
-      const Payment_junction_id = Payment_junction_resp._id;
+const Payment_junction_id = Payment_junction_resp._id;
       //now updating user model of plan/course purchase,is_enrolled and
       // updating balance
-      console.log(user_obj, "user_obj,user_obj");
+      // console.log(user_obj, "user_obj,user_obj");
       const userModel_update_resp = await UserModel.findByIdAndUpdate(
         { _id: user_id },
         {
-          plan_purchase_details: Payment_junction_id,
+          payments_details_junction: Payment_junction_id,
+          enrolled_plan:plan_id,
           is_enrolled: true,
         }
       );
@@ -853,14 +880,16 @@ module.exports.manual_course_enrollment = async (req, res) => {
       // console.log(Purchase_details_model_resp._id);
       // console.log(Payment_junction_resp);
       // console.log(userModel_update_resp);
-      console.log(["sucessfully added every thing"])
-      console.log({key_info:{
-        Payment_junction_id,
-        user_obj_id:user_obj._id,
-        transaction_id,
-        Purchase_details_id
+      console.log(["sucessfully added every thing2"])
 
-      }})
+      console.log(["sucessfully added every thing"])
+      // console.log({key_info:{
+      //   Payment_junction_id,
+      //   user_obj_id:user_obj      ._id,
+      //   transaction_id,
+      //   Purchase_details_id
+
+      // }})
       res.status(200).json({ msg: "successfully purchased" });
     } else {
       const transaction__update_resp =

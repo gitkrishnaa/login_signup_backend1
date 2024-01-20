@@ -25,8 +25,9 @@ const userSchema = mongoose.Schema({
   referral_by_user:{type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 // if course/plan is enrolled these will get updated
   is_enrolled:{type:Boolean,required:true},
+  enrolled_plan:{type:mongoose.Types.ObjectId,ref:model_names_obj.plans},
   // it will be payment_junction which record all details
-  plan_purchase_details:{type:mongoose.Types.ObjectId,ref:model_names_obj.payment_details}
+  payments_details_junction:{type:mongoose.Types.ObjectId,ref:model_names_obj.payment_details}
 },{timestamps: true});
 
 const userModel = mongoose.model(model_names_obj.user, userSchema);
