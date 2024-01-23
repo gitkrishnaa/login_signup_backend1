@@ -11,4 +11,5 @@ route.post("/validation",jwt_verify,payments.validation),
 route.post("/plan_and_payments_calc",jwt_verify,payments.plan_and_payments_and_coupon_code_calc),
 
 
+
 module.exports = route;

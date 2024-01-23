@@ -164,6 +164,9 @@ const payment_calculations = (
 // for plan price calculation where couponcode, discont, gst,it will be show to user when user puchase
 const plan_payment_calculation = (data) => {
   console.log(["plan_payment_calculation"])
+  try {
+    
+ 
   // data:{
   //   is_discount,
   //   is_coupon,
@@ -185,9 +188,13 @@ const plan_payment_calculation = (data) => {
  * 
  */
 
+// if admin_discount means , plan is manual purchased, and admin given requird discount in amount to match offer in that time, because coupon is not applying there
+   const is_admin_discount=data.is_admin_discount;
+   const admin_discount_amount=data.admin_discount_amount;
+   console.log(admin_discount_amount,"admin_discount_amount")
   // csv-common_sales_value, mean after gst, plantform charges cut which is 20 (18gst+2 razorpay)
   const is_upgrading=data.is_upgrading;
-  const previous_purchased_plan_csv= Number(data.previous_purchased_plan_csv);
+  const previous_purchased_plan_csv= data.previous_purchased_plan_csv
   const orignal_plan_price = Number(data.price);
   let is_discount = data.is_discount;
   let is_coupon = data.is_coupon;
@@ -200,11 +207,19 @@ const plan_payment_calculation = (data) => {
   let coupon_discount_value = null;
 
 // if user is upgrading means that no coupon,no discount
+  if(is_admin_discount==true){
+    is_discount=false;
+    is_coupon=false;
+    const discount_amount_given_by_admin=Number(admin_discount_amount)
+    final_plan_price=final_plan_price-discount_amount_given_by_admin;
+    // console.log(discount_amount_given_by_admin,data,"discount_amount_given_by_admin");
+  }
+
   if(is_upgrading==true){
     is_discount=false;
     is_coupon=false;
-    final_plan_price=final_plan_price-previous_purchased_plan_csv
-    console.log(previous_purchased_plan_csv,data,"previous_purchased_plan_csv")
+    final_plan_price=final_plan_price-Number(previous_purchased_plan_csv)
+    // console.log(previous_purchased_plan_csv,data,"previous_purchased_plan_csv")
   }
 
   if (is_discount == true) {
@@ -219,10 +234,6 @@ const plan_payment_calculation = (data) => {
     final_plan_price = final_plan_price - coupon_discount_value;
   }
   
-
-
-
-
   const gst_value = Number(final_plan_price * gst) / 100;
   const plan_price_without_gst = final_plan_price - gst_value;
   return {
@@ -239,7 +250,12 @@ const plan_payment_calculation = (data) => {
     is_coupon:is_coupon,
     is_upgrading:is_upgrading,
     previous_purchased_plan_csv:previous_purchased_plan_csv||null,
+    is_admin_discount:is_admin_discount,//when admin will purchse couse fro user from master/user panel
+    admin_discount_amount:admin_discount_amount,
   };
+} catch (error) {
+    return {msg:"internal error"}
+}
 };
 
 module.exports.payment_calculations = payment_calculations;

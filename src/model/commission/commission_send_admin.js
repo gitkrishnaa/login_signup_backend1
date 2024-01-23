@@ -19,7 +19,6 @@ is_msg_display:{required:true,type:Boolean},
 admin_notes:{type:String},
 admin_user:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 
-
 },{ timestamps: true })
 const model = mongoose.model(model_names_obj.commission_send_admin,schema );
 module.exports = model;

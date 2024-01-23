@@ -4,7 +4,8 @@ const plans=require("../controller/master_user/plans.js")
 const account=require("../controller/master_user/account.js");
 const user_data = require("../controller/master_user/user_data.js");
 const user_kyc = require("../controller/user/kyc.js");
-const coupon=require("../controller/master_user/coupon.js")
+const coupon=require("../controller/master_user/coupon.js");
+const payments=require("../controller/payments/payments.js")
 
 
 
@@ -57,6 +58,10 @@ route.patch("/edit_plan",plans.edit_plan);
 route.post("/add_coupon",jwt_verify,coupon.add_coupon);
 route.get("/all_coupons",jwt_verify,coupon.all_coupons);
 route.post("/delete_coupon",jwt_verify,coupon.delete_coupon);
+
+// manual purchase
+route.post("/payment/plan_and_payments_calc",jwt_verify,payments.plan_and_payments_calc_for_admin_manual_plan_purchase),
+route.post("/payment/manual_plan_purchase",jwt_verify,payments.manual_plan_purchase_by_admin),
 
 // route.patch("/edit_coupon_code",plans.edit_plan);
 module.exports = route;

@@ -21,11 +21,30 @@ module.exports.user_details = async (req, res) => {
         
         // const data=await userModel.findById(user_id).exec(); 
         // const data=await userModel.findById(user_id).populate(`${model_names_obj.kyc}`); 
-
-        const data=await userModel.findById(user_id).populate("kyc referral_by_user plan_purchase_details"); 
+        // { 
+        //     path: 'pages',
+        //     populate: {
+        //       path: 'components',
+        //       model: 'Component'
+        //     } 
+        //  }
+        // const data=await userModel.findById(user_id).populate("kyc referral_by_user enrolled_plan payments_details_junction"); 
+        const data=await userModel.findById(user_id).populate(
+            [{
+            path: 'payments_details_junction',
+            populate:{
+                path:"purchase_details",
+                // model:"purchase_details",
+            },
+        },
+            { path: 'kyc',},
+            { path: 'referral_by_user',},
+            { path: 'enrolled_plan',},
+            ]
+            ); 
 
         console.log(data)
-        res.status(200).json({msg:"all user accounts",user_detail:data})
+        res.status(200).json({msg:"one user details",user_detail:data})
     } catch (error) {
         console.log(error)
         res.status(400).json({msg:"internall error"})

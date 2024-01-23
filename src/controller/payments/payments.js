@@ -116,7 +116,7 @@ const coupon_code_verification=async (coupon_code)=>{
 // for showing plan details and all calculation, it will be used in this controlled, it will be modified also
 // note- this function will decide all the calculation , discount and coupon validation
 // note- by using this we will handle "plan_and_payments_calc" route
-const plan_and_payments_discount_and_coupon_code_discount_calc_function = async ({plan_id,is_coupon,coupon_code,user_id}) => {
+const plan_and_payments_discount_and_coupon_code_discount_calc_function = async ({plan_id,is_coupon,coupon_code,user_id,is_admin_discount,admin_discount_amount}) => {
  
 
   try {
@@ -151,6 +151,8 @@ const plan_and_payments_discount_and_coupon_code_discount_calc_function = async 
       gst,
       is_upgrading:false,
       previous_purchased_plan_csv:null,
+      is_admin_discount:is_admin_discount,
+      admin_discount_amount:admin_discount_amount
     };
 
     // updating price details if user is upgrading
@@ -693,3 +695,313 @@ module.exports.validation = async (req, res) => {
 };
 
 // manual/cash purchase done by admin only
+module.exports.plan_and_payments_calc_for_admin_manual_plan_purchase = async (req, res) => {
+  try {
+    // note-only send plan_details that is not confidential like commission,meeting link , these not send in
+  
+    const user_id = req.body.selected_user_id;
+    const plan_id = req.body.selected_plan_id;
+    let is_admin_discount=req.body.is_admin_discount;
+    let admin_discount_amount=req.body.admin_discount_amount
+    // const admin_discount_amount=50;
+    // if admin_discount_amount is not a number or empty it mean no discount
+    
+    if(admin_discount_amount=="" ||admin_discount_amount==undefined){
+      is_admin_discount==false
+      admin_discount_amount=Number(admin_discount_amount)
+    }
+    else{
+      admin_discount_amount=Number(admin_discount_amount)
+    }
+
+// admin_discount_amount=5
+  console.log(admin_discount_amount,is_admin_discount,"ok")
+
+    const coupon_code=null;
+    const is_coupon = false;
+    console.log(req.body)
+   is_empty_variable(
+    user_id,
+    plan_id)
+     //if any argumnet is empty it will throw error
+// return res.status(200).json({ msg:"ok" });
+
+
+   
+    const data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({plan_id,is_coupon,coupon_code,user_id,is_admin_discount,admin_discount_amount});
+    const {status_code,...rest_data}=data;
+    console.log(data,"data");
+    //console.log(data)
+    
+    res.status(status_code).json(rest_data);
+    // res.status(202).json({msg:"ok"})
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "internal error" });
+  }
+};
+module.exports.manual_plan_purchase_by_admin = async (req, res) => {
+  console.log(["manual_plan_purchase_by_admin"])
+  // this is to validate that orderid and payment_id is not harmed or malformed or hacked
+  // for help- https://github.com/razorpay/razorpay-php/issues/156
+  console.log(req.body)
+  
+  const console_key_details={}
+  try {
+    const seleted_plan_id = req.body.selected_plan_id;
+    const user_id = req.body.selected_user_id;
+    const is_admin_discount=req.body.is_admin_discount;
+    const admin_discount_amount=req.body.admin_discount_amount;
+    // getting details from clients
+    // console_key_details.req_body=req.body
+    
+    // const is_coupon = req.body.is_coupon;
+    const is_coupon = false; //coupon cannot applied from admin side
+    const coupon_code=null;
+
+
+    // checking is any variable is empty
+    // is_empty(req.body.payload);
+
+    
+
+    // all values are null because it it is cash/manual purchase
+    const razorpay_order_id = null;
+    const razorpay_payment_id = null;
+    const razorpay_signature = null;
+    
+    
+console.log(seleted_plan_id,
+  user_id)
+    const transaction_create_resp = await Transaction_model.create({
+      user: user_id,
+      plan: seleted_plan_id,
+      status: true,
+      status_msg: "successful",
+      payment_method:"razorpay online",
+      is_cash_payment:false,
+      is_added_by_admin:false,
+      order_id:razorpay_order_id,
+      payment_id:razorpay_payment_id,
+      payment_signature:razorpay_signature,
+    });
+   console.log(transaction_create_resp)
+    // if(true){
+    //   return res.status(200).json({msg:"ok"})
+    //   }
+    const transaction_id = transaction_create_resp._id
+    if (true) {
+      // get plan details and user details from transaction model
+      const transaction_resp = await Transaction_model.findOne({
+        _id: transaction_id,
+      }).populate("plan user");
+      // console.log(transaction_resp)
+      console_key_details.transaction_resp=transaction_resp
+      // assigning values that recived from db
+      const plan_obj = transaction_resp.plan;
+      const user_obj = transaction_resp.user;
+      const user_id = transaction_resp.user._id;
+      const plan_id = plan_obj._id;
+      const plans_price = plan_obj.price;
+      const gst_percentage = plan_obj.gst;
+      // note- commission will be decided on referral user plan commission
+      const user_commision = plan_obj.commision_percentage;
+      // const user_commision = 0
+
+      const TDS_percentage = 5;
+      const is_referral_exist=user_obj.is_referral_exist
+      const referral_details={
+        is_commission_eligible:false,//if referral user who is also enrolled then user will recieve commission
+        is_referral_exist:is_referral_exist,
+        commission_in_the_enrolled_plan:0,
+        referral_user_id:null,
+      }
+   
+      //# if referral exist then commission is calculated else not commission will be 0
+      if(is_referral_exist==true){
+        const referral_by_user_id=user_obj.referral_by_user;
+        const reffral_user_details = await UserModel.findById(referral_by_user_id).populate("enrolled_plan")
+        const is_referral_user_enrolled=reffral_user_details.is_enrolled;
+      
+        if(is_referral_user_enrolled==true){
+       const enrolled_plan_commission_percentage=reffral_user_details.enrolled_plan.commision_percentage;
+          
+       referral_details.is_commission_eligible=true
+       referral_details.is_referral_exist=true
+       referral_details.commission_in_the_enrolled_plan=enrolled_plan_commission_percentage
+       referral_details.referral_user_id=referral_by_user_id
+        }
+        
+        console_key_details.if_true_then_reffral_details={
+          is_referral_user_enrolled,
+          reffral_user_details,
+          user_id
+          // is_referral_user_enrolled
+        }
+      }
+    
+
+      //
+      // geting final price that user have paid
+      data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({
+        plan_id:seleted_plan_id,
+        is_coupon:is_coupon,
+        coupon_code:coupon_code,
+        user_id:user_id,
+        is_admin_discount:is_admin_discount,
+        admin_discount_amount:admin_discount_amount,
+      });
+      const {status_code,...plan_and_price_details}=data;
+      const price_details=plan_and_price_details.price_details;
+      const final_plan_price = price_details.final_plan_price;
+
+      
+       //important calculation like gst,tds, commission etc
+      const payment_calculations_data = payment_calculations(
+        final_plan_price,
+        gst_percentage,
+        referral_details.commission_in_the_enrolled_plan,
+        TDS_percentage
+      );
+
+    //  console.log(plan_and_price_details,"plan_and_price_details")
+      // inserting purchase details calculation in db
+      const Purchase_details_model_obj= {
+        original_plan_price:plans_price,
+        final_plan_price: payment_calculations_data.final_plan_price,
+        gst_percentage: payment_calculations_data.gst_percentage,
+        TDS_percentage: payment_calculations_data.TDS_percentage,
+        payment_platform_charges_percentage:payment_calculations_data.razorpay_charges_percentage,
+        commission_sales_value_csv:payment_calculations_data.commission_sales_value_csv,
+        reffral_commission_percentage:payment_calculations_data.commision_percentage,
+        reffral_commission_amount: payment_calculations_data.commission_amount,
+        is_discount: price_details.is_discount,
+        is_coupon:price_details.is_coupon,
+        discount_calc_details:price_details,
+        all_calculations: payment_calculations_data,
+        is_admin_discount:true,
+        is_referral_commission_eligible:referral_details.is_commission_eligible,
+        is_upgraded:price_details.is_upgrading,
+      }
+      //  if coupon is applied then add coupon details object in purchase model
+      if(coupon_code!==null && is_coupon==true){
+        const coupon_detais =await Coupon_model.findOne({ coupon_code: coupon_code });
+        Purchase_details_model_obj.coupon_details=coupon_detais
+      }
+
+      const Purchase_details_model_resp = await Purchase_details_model.create(Purchase_details_model_obj);
+      // id of newly stored purchase_details
+      const Purchase_details_id = Purchase_details_model_resp._id;
+  
+
+      /*
+      note-
+      checking, is reffral code is exist, 
+      if not exist not add or do any thing
+      if exist, then get that reffral use , creare a commmission and update the commission balence
+      */
+
+      //  geting reffral user id
+      const Payment_junction_model = {
+        user: user_id,
+        plan: plan_id,
+        transaction: transaction_id,
+        purchase_details: Purchase_details_id,
+      };
+      // console.log(user_obj);
+
+
+      // updating Payment_junction_model
+
+      // getting reffral user id if reffral exist
+    if (referral_details.is_referral_exist == true) {
+        
+        console.log(["updating commission balence"]);
+        const referral_user_id =referral_details.referral_user_id;
+
+        // console.log("user_obj.is_referral_exist", user_obj.is_referral_exist);
+        Payment_junction_model.is_reffral_exist =referral_details.is_referral_exist;
+        Payment_junction_model.reffral_user = referral_user_id;
+    
+    // logic for adding commission
+    // so there will be two entry , first will be same date and 2nd will be after 7 days
+    let today = new Date();
+    let date_after_7day = new Date();
+    date_after_7day.setDate(today.getDate()+7);
+    half_commission_amount=Number(payment_calculations_data.commision_amount_after_TDS)/2;
+    const commission_model_obj_same_date={
+      commission_receiver_user:referral_user_id,
+      commission_amount:half_commission_amount,
+      date_of_payment:today,
+      amount_sent_status:false,
+    }
+    const commission_model_obj_7day_after_date={
+      commission_receiver_user:referral_user_id,
+      commission_amount:half_commission_amount,
+      date_of_payment:date_after_7day,
+      amount_sent_status:false,
+    }
+    const Commision_tranaction_resp1 = await Commision_tranaction.create(commission_model_obj_same_date);
+    const Commision_tranaction_resp2 = await Commision_tranaction.create(commission_model_obj_7day_after_date);
+
+
+        // updating id of recently added Commision_tranaction_resp in Payment_junction_model
+    Payment_junction_model.commision_payments_same_day=Commision_tranaction_resp1._id
+    Payment_junction_model.commision_payments_after_7day=Commision_tranaction_resp2.id
+    } else {
+        Payment_junction_model.is_reffral_exist = false;
+      }
+
+
+      const Payment_junction_resp = await Payment_details_junction.create({
+        ...Payment_junction_model,
+        // commision_payments:it will added after commission document created,
+      });
+
+      const Payment_junction_id = Payment_junction_resp._id;
+      //now updating user model of plan/course purchase,is_enrolled and
+      // updating balance
+      // console.log(user_obj, "user_obj,user_obj");
+  
+      //now updating user model of plan/course purchase,is_enrolled and
+      // updating balance
+      // console.log(user_obj, "user_obj,user_obj");
+      const userModel_update_resp = await UserModel.findByIdAndUpdate(
+        { _id: user_id },
+        {
+          payments_details_junction: Payment_junction_id,
+          enrolled_plan:plan_id,
+          is_enrolled: true,
+        }
+      );
+
+  
+  
+      console.log(["sucessfully added every thing"])
+      console_key_details.key_details={
+        Payment_junction_id,
+        user_obj_id:user_obj._id,
+        transaction_id,
+        Purchase_details_id}
+      console.log(console_key_details)
+      res.status(200).json({ msg: "successfully purchased" });
+    } else {
+      const transaction__update_resp =
+      await Transaction_model.findByIdAndUpdate(
+        { _id: transaction_id },
+        { status_msg: "payment paid, but not validated, please contact to customer care",
+          status: true,
+          order_id:razorpay_order_id,
+          payment_id:razorpay_payment_id,
+          payment_signature:razorpay_signature,
+        }
+      );
+      res.status(400).json({
+        msg: "purchase is not successful, please contact to customercare",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(401).send("error");
+  }
+};
