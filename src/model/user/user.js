@@ -19,6 +19,7 @@ const userSchema = mongoose.Schema({
   kyc_status:{type:Boolean,required:true},
   kyc_status_msg:{type:String,required:true},
   kyc_upload:{type:Boolean,required:true},
+  kyc_reupload:{type:Boolean},
   kyc:{type:mongoose.Types.ObjectId, ref:model_names_obj.kyc},//kyc model id
   //reffral releted
   is_referral_exist:{type:Boolean,required:true},

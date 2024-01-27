@@ -166,7 +166,7 @@ const plan_payment_calculation = (data) => {
   console.log(["plan_payment_calculation"])
   try {
     
- 
+ console.log(data)
   // data:{
   //   is_discount,
   //   is_coupon,

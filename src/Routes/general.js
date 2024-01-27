@@ -1,8 +1,9 @@
 const route = require("express").Router();
 const auth = require("../auth/auth");
-const plans=require("../controller/user/plans");
+const plans=require("../controller/public/plan");
  
-const jwt_verify = auth.jwt_token_verify;
+// it will be public route
+
 
 route.get("/plans",plans.get_all_plans);
 module.exports = route;

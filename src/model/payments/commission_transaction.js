@@ -21,7 +21,7 @@ each commission have two entry
 */
 
 
-const userSchema = mongoose.Schema({
+const Schema = mongoose.Schema({
 payments_junction:{type:mongoose.Types.ObjectId,ref:model_names_obj.payment_details},
 commission_receiver_user:{required:true,type:mongoose.Types.ObjectId,ref:model_names_obj.user},
 commission_amount:{required:true,type:Number},
@@ -36,7 +36,7 @@ transfer_details:{type:String},
 
 },{ timestamps: true });
 
-const userModel = mongoose.model(model_names_obj.commission_payments, userSchema);
+const Model = mongoose.model(model_names_obj.commission_payments, Schema);
 
-module.exports = userModel;
+module.exports = Model;
 

@@ -1,10 +1,13 @@
-const { model_names_obj } = require("../../model/Model_obj")
+const { model_names_obj } = require("../../model/Model_obj");
+
 const Razorpay = require('razorpay');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 module.exports.test=async(req,res)=>{
-console.log(model_names_obj)
+
+
+
 res.json({msg:"ok"})
     
 }

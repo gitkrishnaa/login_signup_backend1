@@ -78,7 +78,7 @@ module.exports.all_coupons = async (req, res) => {
    }
  
    };
-   module.exports.delete_coupon = async (req, res) => {
+module.exports.delete_coupon = async (req, res) => {
     
     try {
     const {id}=req.body

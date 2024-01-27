@@ -11,6 +11,7 @@ const Purchase_details_model = require("../../model/payments/purchase_details");
 const Commision_tranaction = require("../../model/payments/commission_transaction");
 const Coupon_model = require("../../model/master_user/coupon");
 
+
 // payment junction - it used as junction for all model id which is releted to plan/course purchase
 const Payment_details_junction = require("../../model/payments/payment_details_junction");
 const { payment_calculations, plan_payment_calculation } = require("../../data/data");
@@ -136,7 +137,7 @@ const plan_and_payments_discount_and_coupon_code_discount_calc_function = async 
       plan_details._doc;
     // console.log(active);
     if (active === false) {
-       // res.status(403).json({ msg: "plan is deactivated" });
+      // res.status(403).json({ msg: "plan is deactivated" });
       // return;
       return {status_code:403,status:false,msg:"plan is deactivated"}
     }
@@ -151,6 +152,7 @@ const plan_and_payments_discount_and_coupon_code_discount_calc_function = async 
       gst,
       is_upgrading:false,
       previous_purchased_plan_csv:null,
+      is_upgrading:false,
       is_admin_discount:is_admin_discount,
       admin_discount_amount:admin_discount_amount
     };
@@ -184,14 +186,16 @@ const plan_and_payments_discount_and_coupon_code_discount_calc_function = async 
      if(coupon_code_status.is_valid==true){
       console.log("coupon code valid")
        const coupon_discount_percentage=coupon_code_status.coupon_detais?.discount_percentage;
-       const price_data_details = {
-        is_discount,
-        is_coupon: true,
-        discount_percentage,
-        coupon_discount_percentage: coupon_discount_percentage,
-        price,
-        gst,
-      };
+      //  const price_data_details = {
+      //   is_discount,
+      //   is_coupon: true,
+      //   discount_percentage,
+      //   coupon_discount_percentage: coupon_discount_percentage,
+      //   price,
+      //   gst,
+      // };
+      price_data_details.is_coupon=true;
+      price_data_details.coupon_discount_percentage=coupon_discount_percentage
       const price_detais = plan_payment_calculation(price_data_details);
       
       // res.status(200).json({msg: coupon_code_status.msg,plan_details: plan_detalis_send,price_details: price_detais,
@@ -218,6 +222,7 @@ const plan_and_payments_discount_and_coupon_code_discount_calc_function = async 
       console.log("coupon code not exist")
       // res.status(200).json({msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
       //     });
+
       return {status_code:200,msg:"ok",plan_details: plan_detalis_send,price_details: price_detais,
           }
       
@@ -311,15 +316,20 @@ const plan_and_payments_discount_and_coupon_code_discount_calc_function = async 
 //   }
 // };
 module.exports.plan_and_payments_and_coupon_code_calc = async (req, res) => {
+ console.log(['plan_and_payments_and_coupon_code_calc'])
   try {
     // note-only send plan_details that is not confidential like commission,meeting link , these not send in
 
     const user_id = req.user.user_id;
     const plan_id = req.body.id;
     const is_coupon = req.body.is_coupon;
-    const coupon_code=req.body.coupon_code
+    const coupon_code=req.body.coupon_code;
+    const is_admin_discount=false
+    const admin_discount_amount=0
     console.log(req.body)
-    const data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({plan_id,is_coupon,coupon_code,user_id});
+    // console.log("hello")
+    const data=await plan_and_payments_discount_and_coupon_code_discount_calc_function({plan_id,is_coupon,coupon_code,user_id,is_admin_discount,admin_discount_amount});
+    // console.log("hello")
     const {status_code,...rest_data}=data
     console.log(data,"data")
   //  console.log(data)
@@ -342,15 +352,11 @@ module.exports.order = async (req, res) => {
     const user_id = req.user.user_id;
     const user_email = req.user.user_email;
     const is_coupon = req.body.is_coupon;
-    const coupon_code=req.body.coupon_code
+    const coupon_code=req.body.coupon_code;
+    const is_admin_discount=false;
+    const admin_discount_amount=0;
     // console.log(req.body)
     is_empty_variable(seleted_plan_id, user_id, user_email); //if any argumnet is empty it will throw error
-
-
-
-
-
-
 
   const user_resp=await UserModel.findById(user_id)
 // geting final price that user will have to pay
@@ -360,12 +366,15 @@ module.exports.order = async (req, res) => {
       is_coupon:is_coupon,
       coupon_code:coupon_code,
       user_id:user_id,
+      is_admin_discount,
+      admin_discount_amount
     });
   
 
 
    console.log(req.body,"console.log")
    const {status_code,...plan_and_price_details}=data;
+   console.log('OK')
    if(status_code==403){
     res.status(403).json({plan_and_price_details});
     return;
@@ -375,9 +384,9 @@ module.exports.order = async (req, res) => {
 
 
 
-    // // getting plan  details
+    // getting plan  details
     const plan_details = await Plan_model.findById(seleted_plan_id);
-    
+    console.log("ok2")
     //get user details
  
     // console.log(user_resp);
@@ -405,11 +414,16 @@ module.exports.order = async (req, res) => {
       currency: "INR",
       receipt: transaction_id,
     };
+    console.log("ok3",options)
     const resp = await instance.orders.create(options);
     // console.log(resp, "resp");
     // console.log(plan_details);
     // console.log(transaction_resp);
     // console.log(options);
+    console.log(resp)
+// if network connection is not it resp return { statusCode: undefined, error: undefined }
+//  so
+
     res.status(200).json({
       order_id: resp.id,
       options: options,
@@ -421,6 +435,10 @@ module.exports.order = async (req, res) => {
     });
     // res.status(200).json({msg:"ok" });
   } catch (error) {
+    if(error.statusCode==undefined){
+      return res.status(400).json({msg:"not network connection"});
+    }
+    // console.log("ol")
     console.log(error);
     res.status(401).send("error");
   }
@@ -538,6 +556,8 @@ module.exports.validation = async (req, res) => {
         is_coupon:is_coupon,
         coupon_code:coupon_code,
         user_id:user_id,
+        is_admin_discount:false,
+        admin_discount_amount:0
       });
       const {status_code,...plan_and_price_details}=data;
       const price_details=plan_and_price_details.price_details;
@@ -778,9 +798,9 @@ console.log(seleted_plan_id,
       plan: seleted_plan_id,
       status: true,
       status_msg: "successful",
-      payment_method:"razorpay online",
-      is_cash_payment:false,
-      is_added_by_admin:false,
+      payment_method:"cash",
+      is_cash_payment:true,
+      is_added_by_admin:true,
       order_id:razorpay_order_id,
       payment_id:razorpay_payment_id,
       payment_signature:razorpay_signature,
@@ -1005,3 +1025,47 @@ console.log(seleted_plan_id,
     res.status(401).send("error");
   }
 };
+module.exports.all_commissions_transactions = async (req, res) => {
+  console.log("ok")
+  try {
+      const resp=await Commision_tranaction.find().populate([{ path: 'commission_receiver_user'},]); 
+      res.status(200).json({msg:"one user details",data:resp})
+  } catch (error) {
+      console.log(error)
+      res.status(400).json({msg:"internall error"})
+  }
+  }; 
+//user specific commissions
+module.exports.user_commissions_transactions = async (req, res) => {
+    // console.log("ok")
+    try {
+       const user_id=req.body.user_id;
+      
+        const resp=await Commision_tranaction.find({commission_receiver_user:user_id}).populate([{ path: 'commission_receiver_user'},]); 
+  
+        
+        res.status(200).json({msg:"one user details",data:resp})
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({msg:"internall error"})
+    }
+    };
+module.exports.update_user_commissions_transactions = async (req, res) => {
+      // console.log("ok")
+      try {
+        //  commissiom_transaction_id
+        const id=req.body.id;
+        const details=req.body.details;
+        const status=req.body.status
+        console.log(req.body)
+        const resp=await Commision_tranaction.findByIdAndUpdate({_id:id},{
+            transfer_details:details,
+            amount_sent_status:status,
+          }).populate("commission_receiver_user")
+          
+          res.status(200).json({msg:"updated",data:resp})
+      } catch (error) {
+          console.log(error)
+          res.status(400).json({msg:"internall error"})
+      }
+      };

@@ -9,7 +9,7 @@ const Schema = mongoose.Schema({
     name:{type:String,required:true},
     adhar_card:{type:String,required:true},
     adress:{type:String,required:true},
-    uploaded_doc:{type:String,required:true},
+    uploaded_files_details:{type:Object},
     pan_card:{required:true,type:String},
     bank_account_details:{
      bank_name:{required:true,type:String},

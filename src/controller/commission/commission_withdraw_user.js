@@ -1,7 +1,7 @@
 const userModel = require("../../model/user/user");
 const commission_balance_withdraw = require("../../model/commission/commission_withdraw_req");
 // it will be acess by user or admin
-
+// this not used now but it can be used in future
 module.exports.commission_balance_withdraw = async (req, res) => {
   try {
     const { user_id } = req.user;
