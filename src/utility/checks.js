@@ -53,3 +53,17 @@ if(typeof(arr)=="object" && arr.length>=0 ){
 }
 
 }
+module.exports.is_empty_variable_status=(...arr)=>{
+
+
+   const status=false;
+
+    arr.map((e,n)=>{
+      if(e==undefined || e==null || e==""){
+        return true
+      }
+    })
+    return status
+  }
+  
+  

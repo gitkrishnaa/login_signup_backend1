@@ -37,6 +37,7 @@ const upload = require("../upload")
 
 route.post("/signup",user_controller.signup);
 route.post("/forget_password_otp",user_controller.forget_password_otp)
+route.post("/email_otp_verification",user_controller.email_otp_verification)
 route.post("/reset_password",user_controller.reset_password)
 route.post("/login",user_controller.login);
 route.post("/user_details",jwt_verify,user_controller.user_details);

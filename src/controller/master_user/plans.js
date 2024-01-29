@@ -19,7 +19,7 @@ module.exports.add_plan = async (req, res) => {
       referral_code: referral_code,
     };
     checks.is_empty(model_obj);
-    const insert_result = await plan_model.create(model_obj);
+    const insert_result = await Plan_model.create(model_obj);
 
     console.log(insert_result);
 

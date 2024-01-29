@@ -67,7 +67,7 @@ route.post("/payment/manual_plan_purchase",jwt_verify,payments.manual_plan_purch
 
 // payment data sending'
 route.get("/data/all_payments_transaction",jwt_verify,data_sender.all_payment_transaction),
-
+route.post("/data/payment_transaction_details",jwt_verify,data_sender.payment_transaction_details)
 
 // commission releted route
 route.get("/commission/all_commission",jwt_verify,payments.all_commissions_transactions),

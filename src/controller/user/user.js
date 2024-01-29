@@ -33,7 +33,7 @@ module.exports.signup = async (req, res) => {
     console.log(req.body);
     const name = req.body.name;
     const password = req.body.password;
-    const email = req.body.email;
+    let email = req.body.email;
     const mobile = req.body.mobile;
     const city = req.body.city;
     const state = req.body.state;
@@ -42,12 +42,22 @@ module.exports.signup = async (req, res) => {
     let is_referral_exist = false;
     let referral_by_user = undefined;
 
-    console.log(email, password);
-    // checkuing emapty
-    if (email == undefined || password == undefined) {
-      res.status(400).send("empty data");
-      return;
+    // console.log(email, password,name,city,state,zipcode);
+    const is_empty = checks.is_empty_variable_status(
+      name,
+      password,
+      email,
+      mobile,
+      city,
+      state,
+      zipcode
+    );
+    console.log(is_empty);
+    if (is_empty == true) {
+      return res.status(400).json({ msg: "Field is empty, please try again" });
     }
+
+    email = email.toLowerCase();
 
     // checking email valid or not
     const email_valid = check.email_validate(email);
@@ -55,12 +65,7 @@ module.exports.signup = async (req, res) => {
       res.status(400).send("not valid email");
       return;
     }
-    const is_exist = await UserModel.findOne({ email: email });
-    if (is_exist != null) {
-      console.log("user already exist");
-      res.status(400).json({ msg: "user already exist" });
-      return;
-    }
+
     // encrypting password
 
     const encrypt_passowrd = await checks.encrypt_passowrd(password);
@@ -109,12 +114,75 @@ module.exports.signup = async (req, res) => {
       console.log("UserModel_resp", UserModel_resp, "UserModel_resp");
     }
 
-    //  saving in db
+    const resp = await UserModel.findOne({ email: email });
+    console.log(resp);
+    let is_account_created = false;
+    if (resp != null) {
+      //  if user exist but not verified, user have to signup again ,but in backend it just update the data when user signup
 
-    const result = await UserModel.create(model_obj);
-    console.log(result);
-    print(req, { model_obj, result });
-    res.status(201).json({ msg: "user sign up sucessful" });
+      // cheking is user is verified, mean email otp verification
+      if (resp.verified == true) {
+        console.log("user already exist");
+        return res
+          .status(400)
+          .json({ msg: "user already exist,please login or reset password" });
+      } else {
+        const resp_user = await UserModel.findByIdAndUpdate(
+          resp._id,
+          model_obj
+        );
+        if (resp_user != null) {
+          is_account_created=true;
+        } else {
+        return res.status(401).json({ msg: "Account not created, try again" });
+        }
+      }
+
+      return;
+    }
+    //  saving in db
+    else {
+      const result = await UserModel.create(model_obj);
+      console.log(result);
+      print(req, { model_obj, result });
+      is_account_created=true;
+    }
+    if (is_account_created == true) {
+      //#  otp sending.............
+      let otp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        lowerCaseAlphabets: false,
+        specialChars: false,
+      });
+      let result = await Otp_model.findOne({ otp: otp });
+      while (result) {
+        otp = otpGenerator.generate(6, {
+          upperCaseAlphabets: false,
+        });
+        result = await Otp_model.findOne({ otp: otp });
+      }
+      const otpPayload = { email, otp, otp_used: false };
+      const otpBody = await Otp_model.create(otpPayload);
+      console.log(otpBody, otp);
+
+      const email_template = `
+                           Badamission.com
+                           Otp for email verification
+                           OTP- ${otp}
+                           `;
+
+      const email_resp = await email_sending({
+        to: email,
+        subject: "Otp for email verification",
+        text: email_template,
+      });
+      console.log(email_resp, "emai_resp");
+      res.status(200).json({
+        success: true,
+        msg: "Verify your email",
+      });
+    }
+
     // res.status(400).json({msg:"user sign up sucessful"});
   } catch (error) {
     console.log(error);
@@ -122,26 +190,75 @@ module.exports.signup = async (req, res) => {
   }
   console.log(["signup controller end --># "]);
 };
+module.exports.email_otp_verification = async (req, res) => {
+  console.log(["email_otp_verification"]);
+  try {
+    const otp = req.body.otp;
+
+    // checking empty
+    if (otp == undefined) {
+      res.status(400).send({ msg: "Field is empty" });
+      return;
+    }
+
+    const resp = await Otp_model.findOne({ otp: otp });
+
+    if (resp != null) {
+      // checking is otp already used
+      console.log(resp, "resp");
+      if (resp.otp_used == true) {
+        console.log("dont send");
+        res.status(400).json({ msg: "OTP is used already,Signup Again" });
+        return;
+      }
+
+      const email = resp.email;
+      const user_resp = await UserModel.findOneAndUpdate(
+        { email: email },
+        {
+          verified: true,
+        }
+      );
+      console.log(email, email);
+      const otp_resp = await Otp_model.findOneAndUpdate(
+        { otp: otp },
+        {
+          otp_used: true,
+        }
+      );
+      console.log(otp_resp, user_resp);
+      const resp_otp2 = await Otp_model.findOne({ otp: otp });
+      console.log(resp_otp2);
+
+      if (user_resp != null) {
+        res.status(200).json({ msg: "Email verification is successful" });
+      } else {
+        res.status(400).json({
+          msg: "Try again",
+        });
+      }
+    } else {
+      res.status(404).json({
+        msg: "OTP not Matched, Please Generate OTP again (OTP get expired in 20 minutes)",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("internal error");
+  }
+};
 module.exports.login = async (req, res) => {
   console.log(["user_details"]);
   try {
     const password = req.body.password;
-    const email = req.body.email;
-
+    let email = req.body.email;
+    email = email.toLowerCase();
     print(req, { password, email });
     // checkuing emapty
     if (email == undefined || password == undefined) {
-      res.status(400).send("empty data");
+      res.status(400).json({ msg: "empty data" });
       return;
     }
-
-    // checking email valid or not
-    // const email_valid = check.email_validate(email);
-    // if (email_valid.status == false) {
-    //   res.status(400).send("not valid email");
-    //   return;
-    // }
-
     const resp = await UserModel.findOne({ email: email });
 
     if (resp != null) {
@@ -153,12 +270,19 @@ module.exports.login = async (req, res) => {
       print(req, { decrypted_password });
       if (decrypted_password) {
         const jwt_token = await auth.jwt_token_generate(email, resp?._id);
-        res.status(200).json({ token: jwt_token });
+
+        // cheking is user is verified, mean email otp verification
+        if (resp.verified == true) {
+          res.status(200).json({ token: jwt_token });
+        } else {
+          res.status(401).json({ msg: "Email is not verified" });
+        }
+        // res.status(200).json({ token: jwt_token });
       } else {
-        res.status(401).json({ msg: "passowrd not match" });
+        res.status(401).json({ msg: "passowrd not matching" });
       }
     } else {
-      res.status(400).json({ msg: "Account not exist" });
+      res.status(401).json({ msg: "Account not exist" });
     }
 
     console.log(["login controller end --># "]);
@@ -296,7 +420,7 @@ module.exports.forget_password_otp = async (req, res) => {
     `;
 
       const email_resp = await email_sending({
-        to:email,
+        to: email,
         subject: "Otp for reset passowrd",
         text: email_template,
       });
@@ -328,13 +452,13 @@ module.exports.reset_password = async (req, res) => {
 
     const resp = await Otp_model.findOne({ otp: otp });
 
-
     if (resp != null) {
       // checking is otp already used
-      console.log(resp,"resp")
+      console.log(resp, "resp");
       if (resp.otp_used == true) {
-        console.log("dont send")
-          res.status(400)
+        console.log("dont send");
+        res
+          .status(400)
           .json({ msg: "OTP is used already, please generate new OTP" });
         return;
       }
@@ -354,17 +478,15 @@ module.exports.reset_password = async (req, res) => {
           otp_used: true,
         }
       );
-      console.log(otp_resp)
+      console.log(otp_resp);
       const resp_otp2 = await Otp_model.findOne({ otp: otp });
       console.log(resp_otp2);
       // console.log(user_resp);
       res.status(200).json({ msg: "Password changed sucessfully" });
     } else {
-      res
-        .status(404)
-        .json({
-          msg: "OTP not Matched, Please Generate OTP again (OTP get expired in 20 minutes)",
-        });
+      res.status(404).json({
+        msg: "OTP not Matched, Please Generate OTP again (OTP get expired in 20 minutes)",
+      });
     }
   } catch (error) {
     console.log(error);
